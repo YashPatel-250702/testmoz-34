@@ -4,7 +4,7 @@ import "./globals.css";
 import ClientLayout from "../components/ClientLayout";
 
 export const metadata: Metadata = {
-  title: "Test Creation Portal",
+  title: "Quiztopher",
   description: "Assessment platform for students and placement drives",
 };
 
@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gray-50">
-        <ClientLayout>{children}</ClientLayout>
+       {children}
       </body>
     </html>
   );

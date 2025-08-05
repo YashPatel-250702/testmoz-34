@@ -1,103 +1,81 @@
 "use client"
 
-import { DashboardSidebar } from "@/components/dashboard-sidebar"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
-// Removed imports for ListChecks, Users, BarChart as they are now in specific metric components
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Rocket, Users, LayoutDashboard, ShieldCheck } from "lucide-react"
+import Homenavbar from "@/components/Homenavbar"
 
 export default function HomePage() {
   return (
-    <SidebarProvider defaultOpen={true}>
-      <DashboardSidebar collapsible="icon" />
-      <SidebarInset>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 bg-muted/20">
-          <div className="flex items-center">
-            <h1 className="text-lg font-semibold md:text-2xl">Dashboard Overview</h1>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-5">
-            {/* Portal Options */}
-            <Card className="hover:shadow-lg transition-shadow col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">🎓 College Tests</CardTitle>
-                <CardDescription>Manage and access tests specifically for college students.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="/college">
-                  <Button className="w-full">Go to College Portal</Button>
-                </Link>
-              </CardContent>
-            </Card>
-            <Card className="hover:shadow-lg transition-shadow col-span-3">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">💼 Placement Tests</CardTitle>
-                <CardDescription>Manage and access tests for placement drives.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link href="/placement">
-                  <Button className="w-full">Go to Placement Portal</Button>
-                </Link>
-              </CardContent>
-            </Card>
-            {/* Removed all general dashboard metric cards from here */}
-          </div>
-          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-            <Card className="xl:col-span-2">
-              <CardHeader className="flex flex-row items-center">
-                <div className="grid gap-2">
-                  <CardTitle>Recent Activities</CardTitle>
-                  <CardDescription>Overview of latest test creations and student attempts.</CardDescription>
-                </div>
-                <Button asChild size="sm" className="ml-auto gap-1">
-                  <Link href="/mentor/manage-tests">View All</Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <div className="grid gap-1">
-                      <p className="text-sm font-medium leading-none">Java Basics Test Created</p>
-                      <p className="text-sm text-muted-foreground">By Mentor John Doe</p>
-                    </div>
-                    <div className="ml-auto font-medium text-sm">2 hours ago</div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="grid gap-1">
-                      <p className="text-sm font-medium leading-none">Student Alice completed Aptitude Test</p>
-                      <p className="text-sm text-muted-foreground">Score: 85%</p>
-                    </div>
-                    <div className="ml-auto font-medium text-sm">1 day ago</div>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="grid gap-1">
-                      <p className="text-sm font-medium leading-none">New Technical Test Drafted</p>
-                      <p className="text-sm text-muted-foreground">By Placement Team</p>
-                    </div>
-                    <div className="ml-auto font-medium text-sm">3 days ago</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <Button asChild className="w-full">
-                  <Link href="/mentor/create-test?type=general">Create New Test</Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full bg-transparent">
-                  <Link href="/mentor/manage-tests">Manage Existing Tests</Link>
-                </Button>
-                <Button asChild variant="outline" className="w-full bg-transparent">
-                  <Link href="/reports">View Reports</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="min-h-screen bg-white flex flex-col">
+      {/* Navbar */}
+      <Homenavbar />
+    
+
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center text-center px-6 py-20 bg-gray-100">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">Empowering Assessments with Precision</h2>
+        <p className="max-w-xl text-muted-foreground mb-6">
+          Quiztopher is a comprehensive platform designed for college and placement assessments.
+          Crafted to simplify test management for mentors and elevate student evaluation.
+        </p>
+        <Link href="/mentor/auth">
+          <Button size="lg">Get Started as a Mentor</Button>
+        </Link>
+      </section>
+
+      {/* Feature Section */}
+      <section className="px-6 py-16 bg-white">
+        <h3 className="text-2xl font-bold text-center mb-12">Key Features for Mentors</h3>
+
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
+          <Card>
+            <CardHeader className="flex flex-col items-center text-center">
+              <Rocket className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>Test Creation</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center text-sm text-muted-foreground">
+              Create customized tests for college or placement scenarios with flexible question types.
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col items-center text-center">
+              <Users className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>Student Management</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center text-sm text-muted-foreground">
+              Track student progress, assign tests, and review attempts in real-time.
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col items-center text-center">
+              <LayoutDashboard className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>Mentor Dashboard</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center text-sm text-muted-foreground">
+              Access insights, test statistics, and recent activity from a dedicated mentor dashboard.
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-col items-center text-center">
+              <ShieldCheck className="w-10 h-10 text-primary mb-2" />
+              <CardTitle>Secure & Scalable</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center text-sm text-muted-foreground">
+              Built with secure auth and scalable test management for institutions and enterprises.
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-100 text-center py-6 text-sm text-muted-foreground mt-auto">
+        © {new Date().getFullYear()} Quiztopher. All rights reserved.
+      </footer>
+    </div>
   )
 }
