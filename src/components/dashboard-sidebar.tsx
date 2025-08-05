@@ -38,8 +38,8 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
           <BookOpen className="h-6 w-6" />
-          <span className="sr-only">Test Portal</span>
-          <span>Test Portal</span>
+          
+          <span className="text-2xl font-bold text-blue-600 tracking-tight">Quiztopher</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -49,7 +49,7 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Link href="/dashboard">
                     <Home />
                     <span>Dashboard</span>
                   </Link>
