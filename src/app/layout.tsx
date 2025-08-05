@@ -4,7 +4,7 @@ import "./globals.css";
 import ClientLayout from "../components/ClientLayout";
 
 export const metadata: Metadata = {
-  title: "Test Creation Portal",
+  title: "Quiztopher",
   description: "Assessment platform for students and placement drives",
 };
 
