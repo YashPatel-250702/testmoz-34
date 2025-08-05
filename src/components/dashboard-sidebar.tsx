@@ -49,7 +49,7 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/dashboard">
+                  <Link href="/mentor/dashboard">
                     <Home />
                     <span>Dashboard</span>
                   </Link>
