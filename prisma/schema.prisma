@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
@@ -18,6 +18,7 @@ enum TestType {
   COLLEGE
   PLACEMENT
 }
+
 enum TestStatus {
   ACTIVE
   INACTIVE
@@ -32,55 +33,53 @@ model Mentor {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  mobile    String? @unique
-  password  String?
+  mobile    String?  @unique
+  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Test{
-  id        String   @id @default(cuid())
-  name      String?
-  description String?
-  conceptsCovered   String?
-  type       TestType?
-  status     TestStatus?
-  duration   Int?
-  noOfQuestions Int?
-  noOfAttempts Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Test {
+  id              String      @id @default(cuid())
+  name            String?
+  description     String?
+  conceptsCovered String?
+  type            TestType?
+  status          TestStatus?
+  duration        Int?
+  noOfQuestions   Int?
+  noOfAttempts    Int?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   questions TestQuestions[]
   attempts  TestResults[]
 }
 
-model TestQuestions{
+model TestQuestions {
   id        String   @id @default(cuid())
   question  String?
   options   String[]
   answer    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  testId    String
-  test      Test     @relation(fields: [testId], references: [id])
 
+  testId String
+  test   Test   @relation(fields: [testId], references: [id])
 
   @@index([testId])
 }
 
 model TestResults {
-  id        String   @id @default(cuid())
-  userEmail String
+  id         String           @id @default(cuid())
+  userEmail  String
   userMobile String?
-  userName String?
-  score     Int?
-  status    TesResultStatus?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  userName   String?
+  score      Int?
+  status     TesResultStatus?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
-  testId    String
-  test      Test     @relation(fields: [testId], references: [id])
-
+  testId String
+  test   Test   @relation(fields: [testId], references: [id])
 }
