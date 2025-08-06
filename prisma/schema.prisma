@@ -55,7 +55,8 @@ model Test {
   updatedAt       DateTime    @updatedAt
   mentorId String
   mentor         Mentor?      @relation(fields: [mentorId], references: [id])
-  questions TestQuestions[]
+  
+ questions       TestQuestions[] 
   attempts  TestResults[]
 }
 
@@ -68,7 +69,7 @@ model TestQuestions {
   updatedAt DateTime @updatedAt
 
   testId String
-  test   Test   @relation(fields: [testId], references: [id])
+  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   @@index([testId])
 }
