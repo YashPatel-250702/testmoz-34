@@ -1,6 +1,6 @@
 import { AIGeneratedTestResponse, TestType } from "@/lib/model/TestRequest";
 import { saveGeneratedTest } from "@/lib/repository/menotrRepository/CreateTestRepository";
-import { deleteTest, getAllTestsByType, getTestById, updateTestData } from "@/lib/repository/menotrRepository/TestRepository";
+import { deleteTest, getAllTestsByType, getTestById, updateTestData, viewResults } from "@/lib/repository/menotrRepository/TestRepository";
 import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
 
 export async function saveTestService(mentorId:string, testData:AIGeneratedTestResponse) {
@@ -50,4 +50,14 @@ export async function getAllTestsByTypeService(menotrId:string, type:TestType){
     throw new CommonErrorHandler("No test found",404);
    }
    return tests
+}
+
+export async function viewResultsService(id:string) {
+    const testData = await getTestById(id);
+    if(testData==null){
+        throw new CommonErrorHandler("Test not found",404);
+    }
+    const testResults = await viewResults(testData.id);
+
+    return testResults;
 }
