@@ -1,21 +1,23 @@
+import { AIGeneratedTestResponse } from "@/lib/model/TestRequest"
 import prisma from "@/lib/shared/Common/PrismaClient"
 
-export async function saveGeneratedTest(generatedTest: any) {
-  // REMOVE: const testData = generatedTest.testDetails
+export async function saveGeneratedTest(mentorId: string, testData: AIGeneratedTestResponse) {
+
 
   const createdTest = await prisma.test.create({
     data: {
-      name: generatedTest.title,
-      description: generatedTest.description,
-      conceptsCovered: generatedTest.title, 
-      type: 'COLLEGE',
+      name: testData.generatedTest.title,
+      description: testData.generatedTest.description,
+      conceptsCovered: testData.generatedTest.title, 
+      type: testData.testType,
       status: 'ACTIVE',
-      duration: generatedTest.durationMinutes,
-      noOfQuestions: generatedTest.numberOfQuestions,
+      duration: testData.generatedTest.durationMinutes,
+      noOfQuestions: testData.generatedTest.numberOfQuestions,
       noOfAttempts: 0,
+      mentorId: mentorId,
 
       questions: {
-        create: generatedTest.questions.map((q: any) => ({
+        create: testData.generatedTest.questions.map((q: any) => ({
           question: q.problemStatement || q.question,
           options: q.options,
           answer: q.answer,
