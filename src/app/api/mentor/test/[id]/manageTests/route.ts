@@ -42,10 +42,6 @@ export async function PUT(req:NextRequest,{params}:{params:Promise<{id:string}>}
     try {
         const {id}=await params;
         const test:AIGeneratedTestResponse=await req.json();
-         const validatedData=AIGeneratedTestResponseSchema.safeParse(test);
-                if(!validatedData.success){
-                    return sendValidationResponse(validatedData);
-                }
         const updatedTest=await updateTestService(id,test);
         return NextResponse.json({message:"Test updated successfully",updatedTest},{status:200});
 
