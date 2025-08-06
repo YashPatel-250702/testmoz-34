@@ -50,3 +50,8 @@ export async function getAllTestsByType(menotrId:string, testType:TestType){
       const tests=await prisma.test.findMany({where:{mentorId:menotrId, type:testType}}); 
       return tests
 }
+
+export async function updateTestPublicLink(testId:string ,publicLink:string){
+  const updatedTest=await prisma.test.update({where:{id:testId},data:{publicLink:publicLink}}); 
+  return updatedTest;
+}
