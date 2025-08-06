@@ -1,4 +1,3 @@
-
 import { CommonErrorHandler } from '@/lib/shared/Common/CommonError'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
@@ -12,11 +11,21 @@ const model = genAI.getGenerativeModel({
   }
 })
 
-export async function generateTestWithGemini(prompt: string): Promise<string> {
+export async function generateTestWithGemini(prompt: string): Promise<any> {
   try {
-      const result = await model.generateContent(prompt)
-      const response =  result.response
-      return response.text()
+    const result = await model.generateContent(prompt)
+    const response = result.response
+    const text = await response.text()
+
+    const cleaned = text
+      .replace(/^\s*```json\s*/i, '') 
+      .replace(/^\s*```\s*/i, '')    
+      .replace(/```\s*$/, '')  
+      .replace(/#\s*$/, '')          
+      .trim()
+
+    const parsed = JSON.parse(cleaned)
+    return parsed
   } catch (error) {
     console.error("Error generating test with Gemini:", error)
     throw new CommonErrorHandler("Failed to generate test", 500)
