@@ -8,9 +8,7 @@ export const QuestionSchema = z.object({
     })
     .min(1, { message: "At least one option is required" }),
   answer: z.string({ required_error: "Answer is required" }),
-  complexity: z.enum(["easy", "medium", "hard"], {
-    required_error: "Question complexity is required"
-  })
+  
 });
 
 export const GeneratedTestSchema = z.object({
@@ -23,9 +21,7 @@ export const GeneratedTestSchema = z.object({
     .number({ required_error: "Number of questions is required" })
     .int({ message: "Must be an integer" })
     .positive({ message: "Must be greater than 0" }),
-  complexity: z.enum(["easy", "medium", "hard"], {
-    required_error: "Test complexity is required"
-  }),
+  
   questions: z
     .array(QuestionSchema, {
       required_error: "At least one question is required"

@@ -1,8 +1,3 @@
-
-
-
-
-
 "use client"
 
 import type React from "react"
@@ -82,24 +77,79 @@ export default function CreateTestPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/mentor/create-test", {
+      const res = await fetch("/api/mentor/create-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend),
       })
+      console.log("Request sent:", dataToSend)
 
       const result = await res.json()
 
       if (!res.ok) throw new Error(result.message || "Failed to generate test")
+              console.log("Request sent:", dataToSend)
+
 
       setGeneratedTest(result.generatedTest)
     } catch (err) {
       console.error("Error:", err)
-      alert("Failed to generate test.")
+                  console.log("Request sent:", dataToSend)
+
+      alert("Failed to generate tests.")
+
     } finally {
       setIsGenerating(false)
     }
   }
+
+
+
+  // Get mentorId and token from localStorage
+  const mentorId = typeof window !== "undefined" ? localStorage.getItem("mentorId") : null;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  // Save test function
+  const handleSaveTest = async () => {
+    if (!mentorId) {
+      alert("Mentor ID not found. Please login again.");
+      return;
+    }
+    if (!generatedTest) {
+      alert("No test to save.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/mentor/${mentorId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // send token for auth
+        },
+        body: JSON.stringify({
+          generatedTest: generatedTest,
+          conceptName: formData.conceptName,
+          duration: formData.duration,
+          complexity: formData.complexity,
+          numberOfQuestions: formData.numberOfQuestions,
+          codingPercentage: formData.codingPercentage,
+          theoryPercentage: formData.theoryPercentage,
+          testType,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to save test");
+      }
+
+      alert("Test saved successfully!");
+    } catch (error) {
+      console.error("Save test error:", error);
+      alert("Error saving test: " + (error instanceof Error ? error.message : String(error)));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -220,18 +270,19 @@ export default function CreateTestPage() {
                         Question {index + 1} ({q.complexity})
                       </h4>
                       <p className="text-sm mb-2">{q.problemStatement}</p>
-                      {!isAptitude && Array.isArray(q.options) && q.options.length > 0 && (
-                        <ul className="list-disc ml-6 text-sm space-y-1">
-                          {q.options.map((opt, i) => (
-                            <li key={i}>{opt}</li>
-                          ))}
-                        </ul>
-                      )}
+                     {Array.isArray(q.options) && q.options.length > 0 && (
+  <ul className="list-disc ml-6 text-sm space-y-1">
+    {q.options.map((opt, i) => (
+      <li key={i}>{opt}</li>
+    ))}
+  </ul>
+)}
+
                     </div>
                   ))}
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button className="flex-1">💾 Save Test</Button>
+                  <Button className="flex-1" onClick={handleSaveTest}>💾 Save Test</Button>
                   <Button variant="outline" className="flex-1 bg-transparent">
                     ✏️ Edit Questions
                   </Button>
