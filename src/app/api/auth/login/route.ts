@@ -17,6 +17,7 @@ export async function POST(request:NextRequest){
         return NextResponse.json({data:loginResponse}, {status: 200});
 
     } catch (error) {
+        console.log(error)
         if(error instanceof CommonErrorHandler) {
             return sendCommonError(error.message, error.statusCode);
         }

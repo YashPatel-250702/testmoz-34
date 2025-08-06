@@ -34,6 +34,5 @@ export const GeneratedTestSchema = z.object({
 });
 
 export const AIGeneratedTestResponseSchema = z.object({
-  message: z.string({ required_error: "Message is required" }),
   generatedTest: GeneratedTestSchema
 });

@@ -6,10 +6,6 @@ export const TestRequestSchema = z.object({
     required_error: "Concept name is required"
   }).min(1, "Concept name cannot be empty"),
 
-  complexity: z.enum(["easy", "medium", "hard"], {
-    required_error: "Complexity is required"
-  }),
-
   duration: z.number({
     required_error: "Duration is required"
   }).positive("Duration must be a positive number"),
