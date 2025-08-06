@@ -8,7 +8,8 @@ import { generateAptitudeTestPrompt } from '@/lib/shared/Prompts/Placements/Apti
 import { generateTechnicalTestPrompt } from '@/lib/shared/Prompts/Placements/TechnicalTestPrompt'
 
 export async function createTest(body: TestRequestBody) {
-   let prompt = '';
+   try {
+    let prompt = '';
     switch (body.testType) {
       case 'COLLEGE':
         prompt = generateCollegeTestPrompt(body);
@@ -31,4 +32,8 @@ export async function createTest(body: TestRequestBody) {
       message: 'Test successfully created with AI',
       generatedTest: generatedTest,
     }
+   } catch (error) {
+    throw new CommonErrorHandler("Gemini Service is down", 500);
+
+   }
   }
