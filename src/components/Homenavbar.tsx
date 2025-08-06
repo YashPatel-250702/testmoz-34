@@ -24,11 +24,11 @@ const Homenavbar = () => {
             Mentor Login
           </Button>
         </Link>
-        <Link href="/student/login" passHref>
+        {/* <Link href="/student/login" passHref>
           <Button variant={isActive('/student/login') ? 'default' : 'outline'}>
             Student Login
           </Button>
-        </Link>
+        </Link> */}
       </nav>
     </header>
   );
