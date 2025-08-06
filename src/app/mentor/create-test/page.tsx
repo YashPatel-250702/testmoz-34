@@ -11,7 +11,7 @@
 // import { Slider } from "@/components/ui/slider"
 
 // interface TestFormData {
-//   conceptName: string
+//   conceptsList: string
 //   duration: number
 //   complexity: string
 //   numberOfQuestions: number
@@ -43,7 +43,7 @@
 //   const isAptitude = testTypeParam === "APTITUDE"
 
 //   const [formData, setFormData] = useState<TestFormData>({
-//     conceptName: "",
+//     conceptsList: "",
 //     duration: 30,
 //     complexity: "Easy",
 //     numberOfQuestions: 10,
@@ -128,7 +128,7 @@
 //         },
 //         body: JSON.stringify({
 //           generatedTest: generatedTest,
-//           conceptName: formData.conceptName,
+//           conceptsList: formData.conceptsList,
 //           duration: formData.duration,
 //           complexity: formData.complexity,
 //           numberOfQuestions: formData.numberOfQuestions,
@@ -163,12 +163,12 @@
 //             <CardContent>
 //               <form onSubmit={handleSubmit} className="space-y-6">
 //                 <div className="space-y-2">
-//                   <Label htmlFor="conceptName">Concept Name</Label>
+//                   <Label htmlFor="conceptsList">Concept Name</Label>
 //                   <Input
-//                     id="conceptName"
+//                     id="conceptsList"
 //                     placeholder="e.g., Control Statements"
-//                     value={formData.conceptName}
-//                     onChange={(e) => setFormData({ ...formData, conceptName: e.target.value })}
+//                     value={formData.conceptsList}
+//                     onChange={(e) => setFormData({ ...formData, conceptsList: e.target.value })}
 //                     required
 //                   />
 //                 </div>
@@ -319,7 +319,7 @@ import { ArrowLeft } from "lucide-react"
 
 
 interface TestFormData {
-  conceptName: string
+  conceptsList: string
   duration: number
   complexity: string
   numberOfQuestions: number
@@ -352,7 +352,7 @@ export default function CreateTestPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [formData, setFormData] = useState<TestFormData>({
-    conceptName: "",
+    conceptsList: "",
     duration: 30,
     complexity: "Easy",
     numberOfQuestions: 10,
@@ -387,7 +387,7 @@ export default function CreateTestPage() {
 
     try {
       const mentorId = typeof window !== "undefined" ? localStorage.getItem("mentorId") : null
-      const res = await fetch(`/api/mentor/${mentorId}/create-test`, {
+      const res = await fetch(`/api/mentor/${mentorId}/createTests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend),
@@ -413,7 +413,7 @@ export default function CreateTestPage() {
     if (!generatedTest) return alert("No test to save.")
 
     try {
-      const res = await fetch(`/api/mentor/${mentorId}`, {
+      const res = await fetch(`/api/mentor/${mentorId}/manageTests`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -477,12 +477,12 @@ export default function CreateTestPage() {
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                      <Label htmlFor="conceptName">Concept Name</Label>
+                      <Label htmlFor="conceptsList">Concept Name</Label>
                       <Input
-                        id="conceptName"
+                        id="conceptsList"
                         placeholder="e.g., Control Statements"
-                        value={formData.conceptName}
-                        onChange={(e) => setFormData({ ...formData, conceptName: e.target.value })}
+                        value={formData.conceptsList}
+                        onChange={(e) => setFormData({ ...formData, conceptsList: e.target.value })}
                         required
                       />
                     </div>
