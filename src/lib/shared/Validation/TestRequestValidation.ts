@@ -2,9 +2,6 @@ import {z} from "zod";
 
 
 export const TestRequestSchema = z.object({
-  testType: z.enum(["college", "placement"], {
-    required_error: "Test type is required"
-  }),
   conceptName: z.string({
     required_error: "Concept name is required"
   }).min(1, "Concept name cannot be empty"),
