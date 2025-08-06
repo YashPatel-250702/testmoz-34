@@ -37,6 +37,8 @@ model Mentor {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  Test Test[]
 }
 
 model Test {
@@ -51,7 +53,8 @@ model Test {
   noOfAttempts    Int?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
-
+  mentorId String
+  mentor         Mentor?      @relation(fields: [mentorId], references: [id])
   questions TestQuestions[]
   attempts  TestResults[]
 }
