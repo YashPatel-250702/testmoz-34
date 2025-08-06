@@ -1,9 +1,13 @@
+
+
+
+
+
 "use client"
 
 import type React from "react"
 import { useState } from "react"
-import Link from "next/link"
-import { useSearchParams } from "next/navigation" // Import useSearchParams
+import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -20,23 +24,40 @@ interface TestFormData {
   theoryPercentage: number
 }
 
+interface TestQuestion {
+  problemStatement: string
+  options?: string[]
+  answer?: string
+  complexity: string
+}
+
+interface GeneratedTest {
+  title: string
+  description: string
+  questions: TestQuestion[]
+}
+
 export default function CreateTestPage() {
   const searchParams = useSearchParams()
-  const testType = searchParams.get("type") // 'college', 'aptitude', 'technical', 'general'
+  const testTypeParam = searchParams.get("type")?.toUpperCase() || "GENERAL"
 
-  const initialCodingPercentage = testType === "aptitude" ? 0 : 80
-  const initialTheoryPercentage = testType === "aptitude" ? 100 : 20
+  // Transform TECHNICAL/APTITUDE to PLACEMENT as per your logic
+  const testType =
+    testTypeParam === "TECHNICAL" || testTypeParam === "APTITUDE" ? "PLACEMENT" : testTypeParam
+
+  const isAptitude = testTypeParam === "APTITUDE"
 
   const [formData, setFormData] = useState<TestFormData>({
     conceptName: "",
     duration: 30,
     complexity: "Easy",
     numberOfQuestions: 10,
-    codingPercentage: initialCodingPercentage,
-    theoryPercentage: initialTheoryPercentage,
+    codingPercentage: isAptitude ? 0 : 80,
+    theoryPercentage: isAptitude ? 100 : 20,
   })
+
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generatedTest, setGeneratedTest] = useState<string | null>(null)
+  const [generatedTest, setGeneratedTest] = useState<GeneratedTest | null>(null)
 
   const handleSliderChange = (value: number) => {
     setFormData((prev) => ({
@@ -50,71 +71,44 @@ export default function CreateTestPage() {
     e.preventDefault()
     setIsGenerating(true)
 
-    const dataToSend = { ...formData }
-    if (testType === "aptitude") {
+    const dataToSend = {
+      testType,
+      ...formData,
+    }
+
+    if (isAptitude) {
       dataToSend.codingPercentage = 0
       dataToSend.theoryPercentage = 100
     }
 
-    // Simulate AI generation
-    setTimeout(() => {
-      const mockTestIntro = `Welcome to this week's test on ${dataToSend.conceptName}! This test is designed to assess your understanding and skills through a mix of ${testType === "aptitude" ? "100% theoretical questions" : `${dataToSend.codingPercentage}% coding and ${dataToSend.theoryPercentage}% theoretical questions`}. You have ${dataToSend.duration} minutes to complete ${dataToSend.numberOfQuestions} questions at ${dataToSend.complexity} level.
+    try {
+      const res = await fetch("http://localhost:3000/api/mentor/create-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataToSend),
+      })
 
-Please read each question carefully, manage your time effectively, and ensure any code written is syntactically correct. Good luck!`
+      const result = await res.json()
 
-      const mockQuestions =
-        testType === "aptitude"
-          ? `
-**Question 1**: [Type: Theory] [Complexity: ${dataToSend.complexity}]
-What is the capital of France?
-Expected Time: 1 minute
+      if (!res.ok) throw new Error(result.message || "Failed to generate test")
 
-**Question 2**: [Type: Theory] [Complexity: ${dataToSend.complexity}]
-If a car travels at 60 km/h, how far will it travel in 30 minutes?
-Expected Time: 2 minutes
-`
-          : `
-**Question 1**: [Type: Coding] [Complexity: ${dataToSend.complexity}]
-Write a Java program to implement a simple if-else statement that checks if a number is positive, negative, or zero.
-
-Input: An integer number
-Output: "Positive", "Negative", or "Zero"
-Expected Time: 3 minutes
-
-**Question 2**: [Type: Theory] [Complexity: ${dataToSend.complexity}]
-Which of the following is the correct syntax for a for loop in Java?
-a) for(int i=0; i<10; i++)
-b) for(i=0; i<10; i++)
-c) for(int i=0, i<10, i++)
-d) for(int i=0; i<=10; i++)
-
-Expected Time: 2 minutes
-`
-
-      const mockTest = `# Weekly Test Introduction
-
-${mockTestIntro}
-
-## Questions
-
-${mockQuestions}
-
-[Additional questions would be generated based on the specified parameters...]`
-
-      setGeneratedTest(mockTest)
+      setGeneratedTest(result.generatedTest)
+    } catch (err) {
+      console.error("Error:", err)
+      alert("Failed to generate test.")
+    } finally {
       setIsGenerating(false)
-    }, 2000)
+    }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-
         <div className="grid lg:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">✨ Create New Test</CardTitle>
-              <CardDescription>Configure your test parameters and generate AI-powered questions</CardDescription>
+              <CardDescription>Configure test parameters and generate AI questions</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -122,9 +116,9 @@ ${mockQuestions}
                   <Label htmlFor="conceptName">Concept Name</Label>
                   <Input
                     id="conceptName"
-                    placeholder="e.g., Control Statements, Data Structures"
+                    placeholder="e.g., Control Statements"
                     value={formData.conceptName}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, conceptName: e.target.value }))}
+                    onChange={(e) => setFormData({ ...formData, conceptName: e.target.value })}
                     required
                   />
                 </div>
@@ -138,7 +132,7 @@ ${mockQuestions}
                       min="5"
                       max="180"
                       value={formData.duration}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, duration: Number.parseInt(e.target.value) }))}
+                      onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
                       required
                     />
                   </div>
@@ -152,7 +146,7 @@ ${mockQuestions}
                       max="50"
                       value={formData.numberOfQuestions}
                       onChange={(e) =>
-                        setFormData((prev) => ({ ...prev, numberOfQuestions: Number.parseInt(e.target.value) }))
+                        setFormData({ ...formData, numberOfQuestions: parseInt(e.target.value) })
                       }
                       required
                     />
@@ -164,7 +158,7 @@ ${mockQuestions}
                   <Select
                     id="complexity"
                     value={formData.complexity}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, complexity: e.target.value }))}
+                    onChange={(e) => setFormData({ ...formData, complexity: e.target.value })}
                   >
                     <option value="Easy">Easy</option>
                     <option value="Medium">Medium</option>
@@ -173,7 +167,7 @@ ${mockQuestions}
                   </Select>
                 </div>
 
-                {testType !== "aptitude" && ( // Conditionally render this section
+                {!isAptitude && (
                   <div className="space-y-4">
                     <Label>Question Type Distribution</Label>
                     <div className="space-y-4">
@@ -182,11 +176,16 @@ ${mockQuestions}
                           <span className="text-sm font-medium">Coding Questions</span>
                           <span className="text-sm text-gray-600">{formData.codingPercentage}%</span>
                         </div>
-                        <Slider value={formData.codingPercentage} onChange={handleSliderChange} max={100} step={5} />
+                        <Slider
+                          value={formData.codingPercentage}
+                          onChange={handleSliderChange}
+                          max={100}
+                          step={5}
+                        />
                       </div>
                       <div>
                         <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium">Theory/MCQ Questions</span>
+                          <span className="text-sm font-medium">Theory Questions</span>
                           <span className="text-sm text-gray-600">{formData.theoryPercentage}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -208,14 +207,28 @@ ${mockQuestions}
           </Card>
 
           {generatedTest && (
-            <Card>
+            <Card className="max-h-[calc(100vh-4rem)] overflow-y-auto">
               <CardHeader>
-                <CardTitle>Generated Test Preview</CardTitle>
-                <CardDescription>Review your AI-generated test content</CardDescription>
+                <CardTitle>{generatedTest.title}</CardTitle>
+                <CardDescription>{generatedTest.description}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-50 p-4 rounded-lg overflow-auto max-h-96 border">
-                  <pre className="whitespace-pre-wrap text-sm">{generatedTest}</pre>
+                <div className="space-y-4">
+                  {generatedTest.questions.map((q, index) => (
+                    <div key={index} className="p-4 border rounded-md bg-white shadow-sm">
+                      <h4 className="font-medium text-sm mb-2">
+                        Question {index + 1} ({q.complexity})
+                      </h4>
+                      <p className="text-sm mb-2">{q.problemStatement}</p>
+                      {!isAptitude && Array.isArray(q.options) && q.options.length > 0 && (
+                        <ul className="list-disc ml-6 text-sm space-y-1">
+                          {q.options.map((opt, i) => (
+                            <li key={i}>{opt}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  ))}
                 </div>
                 <div className="mt-4 flex gap-2">
                   <Button className="flex-1">💾 Save Test</Button>
