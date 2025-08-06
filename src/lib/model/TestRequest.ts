@@ -1,8 +1,11 @@
+export type TestType = 'COLLEGE' | 'PLACEMENT';
+
 export interface TestRequestBody {
-  conceptName: string
-  complexity: string
-  duration: number
-  numberOfQuestions: number
-  codingPercentage: number
-  theoryPercentage: number
+  testType: TestType;
+  conceptName: string;
+  complexity: string;
+  duration: number;
+  numberOfQuestions: number;
+  codingPercentage: number;
+  theoryPercentage: number;
 }
