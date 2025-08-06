@@ -57,3 +57,8 @@ export async function viewResults(id:string) {
    });
    return testResults;
 }
+
+export async function updateTestPublicLink(testId:string ,publicLink:string){
+  const updatedTest=await prisma.test.update({where:{id:testId},data:{publicLink:publicLink}}); 
+  return updatedTest;
+}

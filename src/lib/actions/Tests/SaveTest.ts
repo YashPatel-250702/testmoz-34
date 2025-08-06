@@ -1,8 +1,8 @@
 import { AIGeneratedTestResponse, TestType } from "@/lib/model/TestRequest";
 import { saveGeneratedTest } from "@/lib/repository/menotrRepository/CreateTestRepository";
-import { deleteTest, getAllTestsByType, getTestById, updateTestData, viewResults } from "@/lib/repository/menotrRepository/TestRepository";
+import { deleteTest, getAllTestsByType, getTestById, updateTestData, updateTestPublicLink, viewResults } from "@/lib/repository/menotrRepository/TestRepository";
 import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
-
+import { customAlphabet } from 'nanoid'
 export async function saveTestService(mentorId:string, testData:AIGeneratedTestResponse) {
      const savedTest=await saveGeneratedTest(mentorId,testData);
      if(savedTest==null){
@@ -60,4 +60,21 @@ export async function viewResultsService(id:string) {
     const testResults = await viewResults(testData.id);
 
     return testResults;
+}
+
+
+
+export async function generatePublicLink(testId:string){
+  const test=await getTestById(testId);
+  if(test==null){
+    throw new CommonErrorHandler("Test not found",404);
+  }
+  const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz1234567890', 10)
+   const linkId = nanoid();
+   const publicId = `https://yourdomain.com/test/${linkId}`;
+   const updatedTest=await updateTestPublicLink(testId,publicId);
+   if(updatedTest==null){
+    throw new CommonErrorHandler("Failed to update test",500);
+   }
+   return publicId;
 }
