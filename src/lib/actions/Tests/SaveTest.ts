@@ -65,13 +65,14 @@ export async function viewResultsService(id:string) {
 
 
 export async function generatePublicLink(testId:string){
+   const domainLink=process.env.NEXT_PUBLIC_DOMAIN_LINK;
   const test=await getTestById(testId);
   if(test==null){
     throw new CommonErrorHandler("Test not found",404);
   }
   const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz1234567890', 10)
    const linkId = nanoid();
-   const publicId = `https://yourdomain.com/test/${linkId}`;
+   const publicId = `${domainLink}/test/${test.id}?${linkId}`;
    const updatedTest=await updateTestPublicLink(testId,publicId);
    if(updatedTest==null){
     throw new CommonErrorHandler("Failed to update test",500);
