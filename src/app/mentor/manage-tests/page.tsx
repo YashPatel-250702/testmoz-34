@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "react-toastify"
 
 interface TestItem {
   id: string
@@ -30,28 +31,40 @@ export default function ManageTestsPage() {
   const searchParams = useSearchParams()
   const type = searchParams.get("type") || "COLLEGE"
 
-  useEffect(() => {
-    const fetchTests = async () => {
-      try {
-        const mentorId = localStorage.getItem("mentorId") // assuming it's already stored
-        if (!mentorId) {
-          console.error("Mentor ID not found in localStorage.")
-          return
-        }
-
-        const response = await axios.get(
-          `/api/mentor/${mentorId}/manageTests?type=${type}`
-        )
-        setTests(response.data.testResult || [])
-      } catch (error) {
-        console.error("Error fetching tests:", error)
-      } finally {
-        setLoading(false)
+  const fetchTests = async () => {
+    try {
+      const mentorId = localStorage.getItem("mentorId")
+      if (!mentorId) {
+        console.error("Mentor ID not found in localStorage.")
+        return
       }
-    }
 
+      const response = await axios.get(
+        `/api/mentor/${mentorId}/manageTests?type=${type}`
+      )
+      setTests(response.data.testResult || [])
+    } catch (error) {
+      console.error("Error fetching tests:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchTests()
   }, [type])
+
+  async function handleDeleteTest(id: string) {
+    try {
+       const response=await axios.delete(`/api/mentor/test/${id}/manageTests`);
+       if(response.status===200){
+         fetchTests(); 
+          toast.success("Test deleted successfully")
+       }
+    } catch (error) {
+      toast.error("Error deleting test")
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -108,14 +121,16 @@ export default function ManageTestsPage() {
                 </div>
 
                 <div className="flex gap-3">
-<Button variant="outline" size="sm" onClick={() => router.push(`/mentor/preview-test/${test.id}`)}>
-  👁️ Preview
-</Button>                  
-<Button variant="outline" size="sm" onClick={() => router.push(`/mentor/edit-test/${test.id}`)}>
-  ✏️ Edit
-</Button>
-                  <Button variant="outline" size="sm">📊 View Results</Button>
-                  <Button variant="destructive" size="sm">🗑️ Delete</Button>
+                  <Button variant="outline" size="sm" onClick={() => router.push(`/mentor/preview-test/${test.id}`)}>
+                     👁️ Preview
+                  </Button>                  
+                  <Button variant="outline" size="sm" onClick={() => router.push(`/mentor/edit-test/${test.id}`)}>
+                     ✏️ Edit
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => router.push(`/mentor/view-result/${test.id}`)}>
+                    📊 View Results
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDeleteTest(test.id)}>🗑️ Delete</Button>
                 </div>
               </CardContent>
             </Card>
