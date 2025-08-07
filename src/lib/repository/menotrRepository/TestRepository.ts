@@ -2,13 +2,30 @@ import { AIGeneratedTestResponse, TestType } from "@/lib/model/TestRequest"
 import prisma from "@/lib/shared/Common/PrismaClient"
 
 
+export async function getTestType(id:string){
+    const testType=await prisma.test.findUnique({
+      select:{type:true},
+      where:{id}
+    })
+    return testType
+}
+
 export async function getTestById(id:string){
+
     const test=await prisma.test.findUnique(
       {where:{id},
       include:{questions:true}
     })
     return test
 }
+export async function getCondingTestsByID(id:string){
+    const test=await prisma.test.findUnique(
+      {where:{id},
+      include:{technicalQuestions:true}
+    })
+    return test
+}
+
 
 export async function updateTestData(id: string, testData: any) {
   const updatedTest = await prisma.test.update({
@@ -50,6 +67,9 @@ export async function getAllTestsByType(menotrId:string, testType:TestType){
       const tests=await prisma.test.findMany({where:{mentorId:menotrId, type:testType}}); 
       return tests
 }
+
+
+
 
 export async function viewResults(id:string) {
    const testResults = await prisma.testResults.findMany({

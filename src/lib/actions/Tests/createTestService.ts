@@ -16,14 +16,12 @@ export async function createTest(body: TestRequestBody) {
       case 'COLLEGE':
         prompt = generateTechnicalTestPrompt(body);
         break;
-      case 'PLACEMENT':
-        if (body.skills?.toLowerCase().includes('aptitude')) {
-          console.log("Generating aptitude test prompt with body:", body);
-          prompt = generateAptitudeTestPrompt(body);
-        } else {
+      case 'TECHNICAL':
           prompt = generateTechnicalTestPrompt(body);
-        }
         break;
+      case 'APPTITUDE':
+         prompt = generateAptitudeTestPrompt(body);
+         break;
       default:
         throw new CommonErrorHandler("Invalid test type", 400);
     }
