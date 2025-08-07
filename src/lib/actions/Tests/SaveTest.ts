@@ -1,6 +1,6 @@
 import { AIGeneratedTestResponse, TestType } from "@/lib/model/TestRequest";
 import { saveGeneratedTest } from "@/lib/repository/menotrRepository/CreateTestRepository";
-import { deleteTest, getAllTestsByType, getTestById, updateTestData, updateTestPublicLink, viewResults } from "@/lib/repository/menotrRepository/TestRepository";
+import { deleteTest, getAllTestsByType, getCondingTestsByID, getTestById, getTestType, updateTestData, updateTestPublicLink, viewResults } from "@/lib/repository/menotrRepository/TestRepository";
 import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
 import { customAlphabet } from 'nanoid'
 export async function saveTestService(mentorId:string, testData:AIGeneratedTestResponse) {
@@ -11,8 +11,19 @@ export async function saveTestService(mentorId:string, testData:AIGeneratedTestR
      return savedTest
 }
 
+
+
 export async function getTestByIdService(id:string){
-    const testData=await getTestById(id);
+   let testData=null;
+   const testType=await getTestType(id);
+   if(testType==null){
+    throw new CommonErrorHandler("Test type not found",404);
+   }
+   if(testType?.type==='APPTITUDE'){
+        testData=await getTestById(id);
+   }else{
+      testData=await getCondingTestsByID(id);
+   }
     if(testData==null){
         throw new CommonErrorHandler("Test not found",404);
     }

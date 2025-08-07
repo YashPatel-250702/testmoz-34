@@ -16,7 +16,8 @@ datasource db {
 
 enum TestType {
   COLLEGE
-  PLACEMENT
+  TECHNICAL
+  APPTITUDE
 }
 
 enum TestStatus {
@@ -68,6 +69,7 @@ model TechnicalTestQuestions{
   sampleOutput  String
   constraints   String?
   complexity    String?
+  type         TestType?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   testId String

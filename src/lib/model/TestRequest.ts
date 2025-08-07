@@ -1,4 +1,4 @@
-export type TestType = 'COLLEGE' | 'PLACEMENT';
+export type TestType = 'COLLEGE' | 'TECHNICAL' | 'APPTITUDE';
 
 export interface TestRequestBody {
   testType: TestType;

@@ -1,11 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
-CREATE TYPE "TestType" AS ENUM ('COLLEGE', 'PLACEMENT');
+CREATE TYPE "TestType" AS ENUM ('COLLEGE', 'TECHNICAL', 'APPTITUDE');
 
 -- CreateEnum
 CREATE TYPE "TestStatus" AS ENUM ('ACTIVE', 'INACTIVE');
@@ -13,16 +7,13 @@ CREATE TYPE "TestStatus" AS ENUM ('ACTIVE', 'INACTIVE');
 -- CreateEnum
 CREATE TYPE "TesResultStatus" AS ENUM ('PASSED', 'FAILED');
 
--- DropTable
-DROP TABLE "User";
-
 -- CreateTable
 CREATE TABLE "Mentor" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT,
     "mobile" TEXT,
-    "password" TEXT,
+    "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -42,8 +33,26 @@ CREATE TABLE "Test" (
     "noOfAttempts" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "mentorId" TEXT NOT NULL,
+    "publicLink" TEXT,
 
     CONSTRAINT "Test_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TechnicalTestQuestions" (
+    "id" TEXT NOT NULL,
+    "problemStatement" TEXT NOT NULL,
+    "sampleInput" TEXT NOT NULL,
+    "sampleOutput" TEXT NOT NULL,
+    "constraints" TEXT,
+    "complexity" TEXT,
+    "type" "TestType",
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "testId" TEXT NOT NULL,
+
+    CONSTRAINT "TechnicalTestQuestions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -81,10 +90,19 @@ CREATE UNIQUE INDEX "Mentor_email_key" ON "Mentor"("email");
 CREATE UNIQUE INDEX "Mentor_mobile_key" ON "Mentor"("mobile");
 
 -- CreateIndex
+CREATE INDEX "TechnicalTestQuestions_testId_idx" ON "TechnicalTestQuestions"("testId");
+
+-- CreateIndex
 CREATE INDEX "TestQuestions_testId_idx" ON "TestQuestions"("testId");
 
 -- AddForeignKey
-ALTER TABLE "TestQuestions" ADD CONSTRAINT "TestQuestions_testId_fkey" FOREIGN KEY ("testId") REFERENCES "Test"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Test" ADD CONSTRAINT "Test_mentorId_fkey" FOREIGN KEY ("mentorId") REFERENCES "Mentor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TechnicalTestQuestions" ADD CONSTRAINT "TechnicalTestQuestions_testId_fkey" FOREIGN KEY ("testId") REFERENCES "Test"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TestQuestions" ADD CONSTRAINT "TestQuestions_testId_fkey" FOREIGN KEY ("testId") REFERENCES "Test"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TestResults" ADD CONSTRAINT "TestResults_testId_fkey" FOREIGN KEY ("testId") REFERENCES "Test"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
