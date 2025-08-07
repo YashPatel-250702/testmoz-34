@@ -49,7 +49,7 @@ export default function AptitudeDashboardPage() {
             <CardDescription>See available aptitude tests and generate student links.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/placement/aptitude/view-tests">
+            <Link href="/placement/aptitude/view-tests?type=PLACEMENT">
               <Button variant="outline" className="w-full bg-transparent">
                 View Available
               </Button>

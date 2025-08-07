@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const testResult = await createTest(body);
     return NextResponse.json(testResult);
   } catch (error) {
+    console.log("Error in createTest API:", error);
     if (error instanceof CommonErrorHandler) {
       return sendCommonError(error.message, error.statusCode);
     }
