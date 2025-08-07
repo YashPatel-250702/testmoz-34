@@ -43,10 +43,10 @@ export default function PlacementHomePage() {
         </Card>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Placement Metrics Overview</h2>
+      {/* <h2 className="text-2xl font-bold text-gray-900 mb-6">Placement Metrics Overview</h2>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-5">
-        <PlacementMetricsCards /> {/* Display placement-specific metrics here */}
-      </div>
+        <PlacementMetricsCards /> Display placement-specific metrics here
+      </div> */}
     </div>
   )
 }

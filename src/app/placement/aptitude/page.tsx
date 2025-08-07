@@ -35,7 +35,7 @@ export default function AptitudeDashboardPage() {
             <CardDescription>View, edit, and manage existing aptitude tests.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/manage-tests">
+            <Link href="/mentor/manage-tests?type=PLACEMENT">
               <Button variant="outline" className="w-full bg-transparent">
                 View & Manage
               </Button>
