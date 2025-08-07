@@ -19,7 +19,7 @@ export default function CollegeViewTestsPage() {
   const [activeTests, setActiveTests] = useState<Test[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null)
-
+  const domain=process.env.NEXT_PUBLIC_DOMAIN_LINK;
   const fetchTests = async () => {
     setLoading(true)
     try {
@@ -89,7 +89,7 @@ export default function CollegeViewTestsPage() {
 
               {test.publicLink ? (
                 <div className="flex gap-2 flex-wrap">
-                  <Link href={test.publicLink} target="_blank" rel="noopener noreferrer">
+                  <Link href={`${domain}/test/${test.id}?${test.publicLink}`} target="_blank" rel="noopener noreferrer">
                     <Button variant="outline">Open Public Test Link</Button>
                   </Link>
                   <Button
