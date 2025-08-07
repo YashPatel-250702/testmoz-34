@@ -1,21 +1,24 @@
 // src/services/createTestService.ts
 
-import { generateCollegeTestPrompt } from '@/lib/shared/Prompts/College/CollegeTestPrompt'
-import { generateTestWithGemini } from './GeminiAIService'
-import { TestRequestBody } from '@/lib/model/TestRequest'
-import { CommonErrorHandler } from '@/lib/shared/Common/CommonError'
-import { generateAptitudeTestPrompt } from '@/lib/shared/Prompts/Placements/AptitudeTestPrompt'
-import { generateTechnicalTestPrompt } from '@/lib/shared/Prompts/Placements/TechnicalTestPrompt'
+import { TestRequestBody } from "@/lib/model/TestRequest";
+import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
+import { generateCollegeTestPrompt } from "@/lib/shared/Prompts/College/CollegeTestPrompt";
+import { generateAptitudeTestPrompt } from "@/lib/shared/Prompts/Placements/AptitudeTestPrompt";
+import { generateTechnicalTestPrompt } from "@/lib/shared/Prompts/Placements/TechnicalTestPrompt";
+import { generateTestWithGemini } from "../Tests/GeminiAIService";
+
+
 
 export async function createTest(body: TestRequestBody) {
-   try {
-    let prompt = '';
+   let prompt = '';
+   console.log("Creating test with body:", body.skills);
     switch (body.testType) {
       case 'COLLEGE':
-        prompt = generateCollegeTestPrompt(body);
+        prompt = generateTechnicalTestPrompt(body);
         break;
       case 'PLACEMENT':
-        if(body.conceptName.toLowerCase().includes('aptitude')) {
+        if (body.skills?.toLowerCase().includes('aptitude')) {
+          console.log("Generating aptitude test prompt with body:", body);
           prompt = generateAptitudeTestPrompt(body);
         } else {
           prompt = generateTechnicalTestPrompt(body);
@@ -32,8 +35,4 @@ export async function createTest(body: TestRequestBody) {
       message: 'Test successfully created with AI',
       generatedTest: generatedTest,
     }
-   } catch (error) {
-    throw new CommonErrorHandler("Gemini Service is down", 500);
-
-   }
   }

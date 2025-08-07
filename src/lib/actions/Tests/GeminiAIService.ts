@@ -16,7 +16,7 @@ export async function generateTestWithGemini(prompt: string): Promise<any> {
     const result = await model.generateContent(prompt)
     const response = result.response
     const text = await response.text()
-
+    console.log("Generated response:", text)
     const cleaned = text
       .replace(/^\s*```json\s*/i, '') 
       .replace(/^\s*```\s*/i, '')    
@@ -25,7 +25,7 @@ export async function generateTestWithGemini(prompt: string): Promise<any> {
       .trim()
 
     const parsed = JSON.parse(cleaned)
-    return parsed
+    return parsed;
   } catch (error) {
     console.error("Error generating test with Gemini:", error)
     throw new CommonErrorHandler("Failed to generate test", 500)

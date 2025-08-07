@@ -1,16 +1,16 @@
 import { TestRequestBody } from '@/lib/model/TestRequest';
 
 export function generateTechnicalTestPrompt(body: TestRequestBody): string {
+  console.log("Generating technical test prompt with body:", body);
   const prompt = `
-You are an AI system tasked with generating a weekly test for students in a full-stack Java or data science training program.
+You are an AI system tasked with generating a weekly coding test for students in a full-stack Java or data science training program.
 
 Inputs:
-- Concept: ${body.conceptName}
+- skills: ${body.skills || 'N/A'}
+- Concepts: ${body.conceptsList}
 - Duration: ${body.duration} minutes
 - Complexity: ${body.complexity}
 - Number of Questions: ${body.numberOfQuestions}
-- Coding Percentage: ${body.codingPercentage}%
-- Theory Percentage: ${body.theoryPercentage}%
 
 Generate:
 1. A welcome introduction text for students.
@@ -20,28 +20,36 @@ Generate:
    - "durationMinutes": total test duration in minutes
    - "numberOfQuestions": total number of questions
    - "complexity": overall complexity level of the test
-   - "questions": an array of ${body.numberOfQuestions} questions, each containing:
-     - "problemStatement": the question or task
-     - "options": an array of exactly 4 options
-     - "answer": the correct option (full string, not just a/b/c/d)
+   - "questions": an array of ${body.numberOfQuestions} **coding questions**, each containing:
+     - "problemStatement": clearly defined problem
+     - "sampleInput": sample input to the problem
+     - "sampleOutput": expected output for the input
+     - "constraints": any constraints (e.g., time/space, input size, valid values)
      - "complexity": same as overall complexity
 
-Question distribution must reflect ${body.codingPercentage}% coding and ${body.theoryPercentage}% theory.
-All questions should be relevant to "${body.conceptName}" and at a "${body.complexity}" level.
+All questions must:
+- Be purely **technical (coding)** problems
+- Focus on **hands-on coding** skills based on the skills and concepts provided
+- Avoid theory or conceptual questions
+- Be relevant to the concepts: **"${body.conceptsList}"**
+- Be at **"${body.complexity}"** level
+- Strictly return ${body.numberOfQuestions} coding questions.
+- Avoid trivial or repetitive problems
 
 Only return valid **pure JSON** in the following format:
 
 {
-  "title": "Weekly Test on ${body.conceptName}",
-  "description": "Welcome to this week's test on ${body.conceptName}. This test is designed to assess your knowledge through ${body.numberOfQuestions} questions over ${body.duration} minutes. The complexity level is ${body.complexity}, with a mix of ${body.codingPercentage}% coding and ${body.theoryPercentage}% theory.",
+  "title": "Weekly Coding Test on ${body.conceptsList}",
+  "description": "Welcome to this week's coding test on ${body.conceptsList}. This test evaluates your coding ability through ${body.numberOfQuestions} hands-on programming questions over ${body.duration} minutes. All questions are of ${body.complexity} complexity.",
   "durationMinutes": ${body.duration},
   "numberOfQuestions": ${body.numberOfQuestions},
   "complexity": "${body.complexity}",
   "questions": [
     {
-      "problemStatement": "Your question here...",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "answer": "Correct full answer string",
+      "problemStatement": "Your coding question here...",
+      "sampleInput": "Sample input string here...",
+      "sampleOutput": "Expected output here...",
+      "constraints": "Any specific constraints",
       "complexity": "${body.complexity}"
     }
     // repeat for all questions
@@ -49,10 +57,11 @@ Only return valid **pure JSON** in the following format:
 }
 
 **Rules:**
-- Ensure exactly 4 options per question.
-- Include 1 correct answer per question.
-- The answer should be the full text (not "A", "B", etc.).
-- Do not return any extra explanation, markdown, or formatting — just valid JSON.
+- Do NOT include theory questions.
+- Strictly return ${body.numberOfQuestions} coding questions.
+- Do NOT return markdown or explanation — only valid JSON.
+- Focus on code logic, inputs, outputs, and real-world problem solving.
+- Avoid repetitive or trivial problems.
 `;
 
   return prompt;
