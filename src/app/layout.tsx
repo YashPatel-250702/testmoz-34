@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ClientLayout from "../components/ClientLayout";
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "Quiztopher",
@@ -17,6 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-gray-50">
        {children}
+        <ToastContainer />
       </body>
     </html>
   );

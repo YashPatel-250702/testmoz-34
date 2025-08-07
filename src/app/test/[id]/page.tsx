@@ -1,117 +1,106 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-
-// Mock data for tests (in a real app, this would come from a database)
-const mockTests = {
-  "college-java-basics": {
-    title: "Java Basics for College Students",
-    conceptName: "Java Control Statements",
-    duration: 60,
-    complexity: "Easy",
-    codingPercentage: 70,
-    theoryPercentage: 30,
-    numberOfQuestions: 20,
-    introduction: `Welcome to this week's test on Java Control Statements! This test is designed to assess your understanding and skills through a mix of 70% coding and 30% theoretical questions. You have 60 minutes to complete 20 questions at Easy level. Please read each question carefully, manage your time effectively, and ensure any code written is syntactically correct. Good luck!`,
-  },
-  "aptitude-reasoning": {
-    title: "Aptitude Reasoning Test",
-    conceptName: "Logical Reasoning",
-    duration: 45,
-    complexity: "Mixed",
-    codingPercentage: 0,
-    theoryPercentage: 100,
-    numberOfQuestions: 30,
-    introduction: `Welcome to the Aptitude Reasoning Test! This test assesses your logical reasoning and problem-solving skills. You have 45 minutes to complete 30 questions at Mixed complexity. Please read each question carefully and manage your time effectively. Good luck!`,
-  },
-  "aptitude-english": {
-    title: "Aptitude English Test",
-    conceptName: "English Language",
-    duration: 30,
-    complexity: "Easy",
-    codingPercentage: 0,
-    theoryPercentage: 100,
-    numberOfQuestions: 20,
-    introduction: `Welcome to the Aptitude English Test! This test evaluates your verbal ability, grammar, and comprehension. You have 30 minutes to complete 20 questions at Easy complexity. Please read each question carefully and manage your time effectively. Good luck!`,
-  },
-  "technical-java-core": {
-    title: "Java Core Concepts Test",
-    conceptName: "Java Core Concepts",
-    duration: 60,
-    complexity: "Medium",
-    codingPercentage: 80,
-    theoryPercentage: 20,
-    numberOfQuestions: 25,
-    introduction: `Welcome to the Java Core Concepts Test! This test covers fundamental Java programming concepts. You have 60 minutes to complete 25 questions at Medium complexity. Please read each question carefully, manage your time effectively, and ensure any code written is syntactically correct. Good luck!`,
-  },
-  "technical-data-structures": {
-    title: "Data Structures & Algorithms Test",
-    conceptName: "Data Structures & Algorithms",
-    duration: 90,
-    complexity: "Hard",
-    codingPercentage: 90,
-    theoryPercentage: 10,
-    numberOfQuestions: 20,
-    introduction: `Welcome to the Data Structures & Algorithms Test! This test assesses your knowledge of common data structures and algorithms. You have 90 minutes to complete 20 questions at Hard complexity. Please read each question carefully, manage your time effectively, and ensure any code written is syntactically correct. Good luck!`,
-  },
-  "technical-web-dev": {
-    title: "Web Development Basics Test",
-    conceptName: "Web Development Basics",
-    duration: 75,
-    complexity: "Medium",
-    codingPercentage: 70,
-    theoryPercentage: 30,
-    numberOfQuestions: 30,
-    introduction: `Welcome to the Web Development Basics Test! This test covers HTML, CSS, JavaScript, and basic web concepts. You have 75 minutes to complete 30 questions at Medium complexity. Please read each question carefully, manage your time effectively, and ensure any code written is syntactically correct. Good luck!`,
-  },
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { AlertTriangle } from "lucide-react"
 
 export default function TestIntroductionPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const testId = params.id
-  const test = mockTests[testId as keyof typeof mockTests]
 
-  if (!test) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-full max-w-md text-center p-8">
-          <CardTitle>Test Not Found</CardTitle>
-          <CardDescription className="mt-2">The test you are looking for does not exist.</CardDescription>
-          <Button onClick={() => router.push("/")} className="mt-6">
-            Go to Home
-          </Button>
-        </Card>
-      </div>
-    )
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mobile: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleStartTest = () => {
-    // In a real application, this would navigate to the actual test-taking interface
-    // For now, we'll just log and simulate starting
-    console.log(`Starting test: ${test.title}`)
-    alert(`Simulating start of test: ${test.title}. In a real app, you'd go to the questions now!`)
-    // Example: router.push(`/test/${testId}/start`);
+    if (!formData.name || !formData.email || !formData.mobile) {
+      alert("Please fill all the fields")
+      return
+    }
+
+    // Optionally save data in localStorage/sessionStorage
+    localStorage.setItem("candidateInfo", JSON.stringify(formData))
+
+    router.push(`/test/${params.id}/start`)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">{test.title}</CardTitle>
-          <CardDescription className="text-center">Test Introduction</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="prose prose-sm max-w-none mb-6 p-4 border rounded-md bg-gray-50">
-            <p className="whitespace-pre-wrap">{test.introduction}</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+      <Card className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6 p-6 shadow-lg rounded-2xl">
+        {/* Instructions Section */}
+        <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="text-blue-600 w-6 h-6" />
+            <h2 className="text-2xl font-bold text-blue-900">Important Instructions</h2>
           </div>
-          <div className="flex justify-center">
-            <Button onClick={handleStartTest} className="w-full max-w-xs py-3 text-lg">
-              🚀 Start Test
+          <ul className="list-disc pl-5 text-base text-gray-800 space-y-3">
+            <li><strong>Duration:</strong> This test has a strict time limit.</li>
+            <li><strong>Do not refresh</strong> or close the tab during the test.</li>
+            <li>Switching tabs may lead to disqualification.</li>
+            <li>Ensure you have a <strong>stable internet connection</strong>.</li>
+            <li>Click "Start Test" only when you're fully prepared.</li>
+          </ul>
+        </div>
+
+        {/* Form Section */}
+        <div className="space-y-6 flex flex-col justify-center">
+          <CardHeader className="p-0 mb-2">
+            <CardTitle className="text-xl text-gray-800 text-center md:text-left">
+              Candidate Information
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-4 p-0">
+            <div>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                name="name"
+                placeholder="e.g. John Doe"
+                value={formData.name}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="e.g. john@example.com"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="mobile">Mobile Number</Label>
+              <Input
+                id="mobile"
+                name="mobile"
+                type="tel"
+                placeholder="e.g. 9876543210"
+                value={formData.mobile}
+                onChange={handleChange}
+              />
+            </div>
+
+            <Button className="w-full mt-4" onClick={handleStartTest}>
+              Start Test
             </Button>
-          </div>
-        </CardContent>
+          </CardContent>
+        </div>
       </Card>
     </div>
   )

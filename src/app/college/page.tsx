@@ -33,11 +33,12 @@ export default function CollegeDashboardPage() {
             <CardDescription>View, edit, and manage existing college tests.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/manage-tests">
-              <Button variant="outline" className="w-full bg-transparent">
-                View & Manage
-              </Button>
-            </Link>
+           <Link href="/mentor/manage-tests?type=COLLEGE">
+  <Button variant="outline" className="w-full bg-transparent">
+    View & Manage
+  </Button>
+</Link>
+
           </CardContent>
         </Card>
 
@@ -56,10 +57,10 @@ export default function CollegeDashboardPage() {
         </Card>
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">College Metrics Overview</h2>
+      {/* <h2 className="text-2xl font-bold text-gray-900 mb-6">College Metrics Overview</h2>
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-5">
-        <CollegeMetricsCards /> {/* Display college-specific metrics here */}
-      </div>
+        <CollegeMetricsCards /> Display college-specific metrics here
+      </div> */}
     </div>
   )
 }

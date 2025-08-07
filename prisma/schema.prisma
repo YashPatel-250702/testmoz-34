@@ -55,7 +55,7 @@ model Test {
   updatedAt       DateTime    @updatedAt
   mentorId String
   mentor         Mentor?      @relation(fields: [mentorId], references: [id])
-  
+  publicLink      String?
  questions       TestQuestions[] 
   attempts  TestResults[]
 }

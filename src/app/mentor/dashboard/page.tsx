@@ -7,9 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Menu } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function DashboardLandingPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const router = useRouter();
 
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
@@ -18,12 +21,28 @@ export default function DashboardLandingPage() {
 
       <SidebarInset>
         {/* Toggle Button */}
-        <div className="flex items-center justify-between p-4 border-b bg-white">
-          <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <Menu className="w-5 h-5" />
-          </Button>
-          <h2 className="text-lg font-semibold">Dashboard Overview</h2>
-        </div>
+         <div className="flex items-center justify-between p-4 border-b bg-white">
+  <div className="flex items-center gap-2">
+      {/* <Button variant="ghost" size="sm" onClick={() => router.back()}>
+      <ArrowLeft className="w-5 h-5" />
+    </Button> */}
+    <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
+      <Menu className="w-5 h-5" />
+    </Button>
+  
+  </div>
+  <div className="flex gap-2">
+    <Link href="/mentor/dashboard">
+      <Button variant="outline" size="sm">Dashboard</Button>
+    </Link>
+    <Link href="/college">
+      <Button variant="outline" size="sm">College</Button>
+    </Link>
+    <Link href="/placement">
+      <Button variant="outline" size="sm">Placement</Button>
+    </Link>
+  </div>
+</div>
 
         {/* Main Dashboard Content */}
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 bg-muted/20">
@@ -55,7 +74,7 @@ export default function DashboardLandingPage() {
 
           {/* Activities + Quick Actions */}
           <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-            <Card className="xl:col-span-2">
+            {/* <Card className="xl:col-span-2">
               <CardHeader className="flex flex-row items-center">
                 <div className="grid gap-2">
                   <CardTitle>Recent Activities</CardTitle>
@@ -90,9 +109,9 @@ export default function DashboardLandingPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
@@ -107,7 +126,7 @@ export default function DashboardLandingPage() {
                   <Link href="/reports">View Reports</Link>
                 </Button>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </main>
 
