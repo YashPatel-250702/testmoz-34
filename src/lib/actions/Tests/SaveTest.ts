@@ -73,7 +73,7 @@ export async function generatePublicLink(testId:string){
   const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz1234567890', 10)
    const linkId = nanoid();
    const publicId = `${domainLink}/test/${test.id}?${linkId}`;
-   const updatedTest=await updateTestPublicLink(testId,publicId);
+   const updatedTest=await updateTestPublicLink(testId,linkId);
    if(updatedTest==null){
     throw new CommonErrorHandler("Failed to update test",500);
    }
