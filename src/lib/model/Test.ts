@@ -2,7 +2,7 @@ export interface Test {
   id: string;
   name: string;
   description: string;
-  conceptsCovered: string;
+  conceptsCovered: string[];
   type: 'COLLEGE' | 'PLACEMENT'; 
   status: 'ACTIVE' | 'INACTIVE'; 
   duration: number; 
