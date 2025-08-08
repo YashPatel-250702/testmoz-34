@@ -21,7 +21,7 @@ export default function TechnicalDashboardPage() {
             <CardDescription>Design and generate new technical assessments.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/create-test?type=technical">
+            <Link href="/mentor/create-test?type=TECHNICAL">
               {" "}
               {/* Updated link */}
               <Button className="w-full">Start Creating</Button>
@@ -35,7 +35,7 @@ export default function TechnicalDashboardPage() {
             <CardDescription>View, edit, and manage existing technical tests.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/manage-tests?type=PLACEMENT">
+            <Link href="/mentor/manage-tests?type=TECHNICAL">
               <Button variant="outline" className="w-full bg-transparent">
                 View & Manage
               </Button>

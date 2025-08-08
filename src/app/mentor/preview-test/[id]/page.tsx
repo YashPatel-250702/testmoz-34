@@ -1,83 +1,135 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import React, { useEffect, useState } from "react"
+import { useParams, useSearchParams } from "next/navigation"
 import axios from "axios"
 
-interface Question {
-  id: string
-  question: string
-  options: string[]
-  answer: string
-}
-
-interface Test {
-  id: string
-  name: string
-  description: string
-  duration: number
-  noOfQuestions: number
-  status: string
-  type: string
-  createdAt: string
-  questions: Question[]
-}
-
 export default function PreviewTestPage() {
-  const { id } = useParams()
-  const [test, setTest] = useState<Test | null>(null)
-  const [loading, setLoading] = useState(true)
+  const params = useParams() as any
+  const testId = params?.id || params?.testId
+  const searchParams = useSearchParams()
+  const queryType = searchParams.get("type")?.toUpperCase()
+
+  const [testData, setTestData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchTest = async () => {
+    if (!testId) {
+      setError("No test id provided.")
+      return
+    }
+
+    async function fetchTest() {
+      setLoading(true)
+      setError(null)
+
       try {
-        const response = await axios.get(`/api/mentor/test/${id}/manageTests`)
-        setTest(response.data.test)
-      } catch (error) {
-        console.error("Error fetching test:", error)
+        const res = await axios.get(`/api/mentor/test/${testId}/manageTests`)
+        const test = res.data.test
+        if (!test) throw new Error("Test data not found")
+        if (!test.type) throw new Error("Test type not found")
+
+        setTestData(test)
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch test")
       } finally {
         setLoading(false)
       }
     }
 
-    if (id) fetchTest()
-  }, [id])
+    fetchTest()
+  }, [testId])
 
-  if (loading) return <p className="p-4">Loading...</p>
-  if (!test) return <p className="p-4 text-red-500">Test not found</p>
+  if (loading) return <p className="p-6 text-center text-lg">Loading test...</p>
+  if (error) return <p className="p-6 text-center text-red-600 font-semibold">Error: {error}</p>
+  if (!testData) return <p className="p-6 text-center text-gray-600">No test data available.</p>
+
+  const type = (testData.type || queryType || "").toUpperCase()
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold mb-2">{test.name}</h1>
-      <p className="text-gray-600 mb-4">{test.description}</p>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <header>
+        <h1 className="text-3xl font-bold mb-2">{testData.name || "Untitled Test"}</h1>
+        <p className="text-gray-700 mb-1">{testData.description}</p>
+        <div className="text-sm text-gray-500 space-x-4">
+          <span>🕒 Duration: <strong>{testData.duration} mins</strong></span>
+          <span>📝 Questions: <strong>{testData.noOfQuestions}</strong></span>
+          <span>Status: <strong>{testData.status || "N/A"}</strong></span>
+          <span>Type: <strong>{type}</strong></span>
+        </div>
+      </header>
 
-      <div className="text-sm text-gray-500 mb-6">
-        <p>🕒 Duration: {test.duration} mins</p>
-        <p>📝 Questions: {test.noOfQuestions}</p>
-        <p>Status: {test.status}</p>
-        <p>Type: {test.type}</p>
-        <p>Created At: {new Date(test.createdAt).toLocaleString()}</p>
-      </div>
+      {/* MCQ Questions */}
+      {type === "APPTITUDE" && testData.questions && (
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 border-b pb-2">MCQ Questions</h2>
+          <div className="space-y-4">
+            {testData.questions.map((q: any, i: number) => (
+              <div
+                key={q.id || i}
+                className="border rounded-lg p-4 bg-white shadow-sm"
+              >
+                <p className="font-semibold text-lg mb-2">
+                  Q{i + 1}: {q.question}
+                </p>
 
-      <hr className="my-4" />
-
-      <h2 className="text-xl font-semibold mb-4">Questions</h2>
-      <div className="space-y-6">
-        {test.questions.map((q, index) => (
-          <div key={q.id} className="p-4 border rounded-md bg-white shadow-sm">
-            <p className="font-semibold mb-2">
-              Q{index + 1}. {q.question}
-            </p>
-            <ul className="space-y-1 pl-5 list-disc text-sm">
-              {q.options.map((opt, i) => (
-                <li key={i} className={opt === q.answer ? "text-green-700 font-medium" : ""}>
-                  {opt}
-                </li>
-              ))}
-            </ul>
+                <ul className="pl-5 list-disc space-y-1">
+                  {q.options?.map((opt: string, idx: number) => {
+                    const isCorrect = opt?.trim().toLowerCase() === q.answer?.trim().toLowerCase()
+                    return (
+                      <li
+                        key={idx}
+                        className={`text-base ${isCorrect ? "text-green-700 font-semibold" : ""}`}
+                      >
+                        {opt}
+                        {isCorrect && <span className="ml-2 text-green-500">✔</span>}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </section>
+      )}
+
+      {/* Coding Questions */}
+      {(type === "COLLEGE" || type === "TECHNICAL") && testData.technicalQuestions && (
+        <section>
+          <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Coding Questions</h2>
+          <div className="space-y-6">
+            {testData.technicalQuestions.map((q: any, i: number) => (
+              <div key={q.id || i} className="border rounded-lg bg-white shadow p-6">
+                <p className="font-semibold text-lg mb-3">
+                  Question {i + 1}:
+                </p>
+                <p className="mb-4 whitespace-pre-line">{q.problemStatement}</p>
+
+                {q.sampleInput && (
+                  <div className="mb-3 bg-gray-100 p-3 rounded font-mono text-sm whitespace-pre-wrap">
+                    <strong>Sample Input:</strong>
+                    <pre>{q.sampleInput}</pre>
+                  </div>
+                )}
+
+                {q.sampleOutput && (
+                  <div className="mb-3 bg-gray-100 p-3 rounded font-mono text-sm whitespace-pre-wrap">
+                    <strong>Sample Output:</strong>
+                    <pre>{q.sampleOutput}</pre>
+                  </div>
+                )}
+
+                {q.constraints && (
+                  <p className="text-sm italic text-gray-600">
+                    <strong>Constraints:</strong> {q.constraints}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

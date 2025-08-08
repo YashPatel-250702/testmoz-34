@@ -22,15 +22,33 @@ export default function TestIntroductionPage({ params }: { params: { id: string 
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
+  const isValidGmail = (email: string) => {
+    return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email)
+  }
+
+  const isValidMobile = (mobile: string) => {
+    return /^[6-9]\d{9}$/.test(mobile)
+  }
+
   const handleStartTest = () => {
-    if (!formData.name || !formData.email || !formData.mobile) {
+    const { name, email, mobile } = formData
+
+    if (!name || !email || !mobile) {
       alert("Please fill all the fields")
       return
     }
 
-    // Optionally save data in localStorage/sessionStorage
-    localStorage.setItem("candidateInfo", JSON.stringify(formData))
+    if (!isValidGmail(email)) {
+      alert("Please enter a valid Gmail address (e.g., user@gmail.com)")
+      return
+    }
 
+    if (!isValidMobile(mobile)) {
+      alert("Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9")
+      return
+    }
+
+    localStorage.setItem("candidateInfo", JSON.stringify(formData))
     router.push(`/test/${params.id}/start`)
   }
 
@@ -78,7 +96,7 @@ export default function TestIntroductionPage({ params }: { params: { id: string 
                 id="email"
                 name="email"
                 type="email"
-                placeholder="e.g. john@example.com"
+                placeholder="e.g. john@gmail.com"
                 value={formData.email}
                 onChange={handleChange}
               />
@@ -89,6 +107,7 @@ export default function TestIntroductionPage({ params }: { params: { id: string 
               <Input
                 id="mobile"
                 name="mobile"
+                maxLength={10}
                 type="tel"
                 placeholder="e.g. 9876543210"
                 value={formData.mobile}

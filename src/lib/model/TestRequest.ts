@@ -3,7 +3,7 @@ export type TestType = 'COLLEGE' | 'TECHNICAL' | 'APPTITUDE';
 export interface TestRequestBody {
   testType: TestType;
   skills?: string;
-  conceptsList: string;
+  conceptsList: string[];
   complexity: string;
   duration: number;
   numberOfQuestions: number;
@@ -24,6 +24,7 @@ type GeneratedTest = {
   durationMinutes: number;
   numberOfQuestions: number;
   complexity: string; 
+  conceptsList: string[];
   questions: Question[];
 };
 

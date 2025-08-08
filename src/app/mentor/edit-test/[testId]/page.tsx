@@ -10,14 +10,17 @@ export default function EditTestPage() {
   const { testId } = useParams()
   const [testData, setTestData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTest = async () => {
+      setLoading(true)
+      setError(null)
       try {
         const res = await axios.get(`/api/mentor/test/${testId}/manageTests`)
-        setTestData(res.data.test) // <-- match API structure
-      } catch (error) {
-        console.error("Failed to fetch test:", error)
+        setTestData(res.data.test)
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch test")
       } finally {
         setLoading(false)
       }
@@ -26,6 +29,9 @@ export default function EditTestPage() {
     fetchTest()
   }, [testId])
 
+  const type = testData?.type?.toUpperCase()
+
+  // Handle input change for test-level fields
   const handleInputChange = (field: string, value: any) => {
     setTestData((prev: any) => ({
       ...prev,
@@ -33,7 +39,8 @@ export default function EditTestPage() {
     }))
   }
 
-  const handleQuestionChange = (index: number, field: string, value: any) => {
+  // For Aptitude MCQ questions
+  const handleAptitudeQuestionChange = (index: number, field: string, value: any) => {
     const updatedQuestions = [...testData.questions]
     updatedQuestions[index][field] = value
     setTestData((prev: any) => ({
@@ -42,31 +49,79 @@ export default function EditTestPage() {
     }))
   }
 
-const handleSave = async () => {
-  try {
-    const updatedQuestions = testData.questions.map((q: any) => ({
-      ...q,
-      testId: testData.id,
+  // For Aptitude question options
+  const handleAptitudeOptionChange = (qIndex: number, optIndex: number, value: string) => {
+    const updatedQuestions = [...testData.questions]
+    updatedQuestions[qIndex].options[optIndex] = value
+    setTestData((prev: any) => ({
+      ...prev,
+      questions: updatedQuestions,
     }))
-
-    const payload = {
-      test: {
-        ...testData,
-        questions: updatedQuestions,
-      }
-    }
-
-    await axios.put(`/api/mentor/test/${testId}/manageTests`, payload)
-    alert("✅ Test updated successfully!")
-  } catch (error) {
-    console.error("Failed to update test:", error)
-    alert("❌ Failed to update test.")
   }
-}
 
+  const addAptitudeOption = (qIndex: number) => {
+    const updatedQuestions = [...testData.questions]
+    updatedQuestions[qIndex].options.push("")
+    setTestData((prev: any) => ({
+      ...prev,
+      questions: updatedQuestions,
+    }))
+  }
 
+  // For Coding questions
+  const handleCodingQuestionChange = (index: number, field: string, value: any) => {
+    const updatedQuestions = [...testData.technicalQuestions]
+    updatedQuestions[index][field] = value
+    setTestData((prev: any) => ({
+      ...prev,
+      technicalQuestions: updatedQuestions,
+    }))
+  }
+
+  // Save handler for both types
+  const handleSave = async () => {
+    try {
+      if (type === "APPTITUDE") {
+        const updatedQuestions = testData.questions.map((q: any) => ({
+          ...q,
+          testId: testData.id,
+        }))
+
+        const payload = {
+          test: {
+            ...testData,
+            questions: updatedQuestions,
+          }
+        }
+
+        await axios.put(`/api/mentor/test/${testId}/manageTests`, payload)
+      } else if (type === "COLLEGE" || type === "TECHNICAL") {
+        const updatedQuestions = testData.technicalQuestions.map((q: any) => ({
+          ...q,
+          testId: testData.id,
+        }))
+
+        const payload = {
+          title: testData.name,
+          description: testData.description,
+          durationMinutes: testData.duration,
+          numberOfQuestions: testData.noOfQuestions,
+          complexity: updatedQuestions[0]?.complexity || "easy", // example
+          questions: updatedQuestions,
+        }
+
+        await axios.put(`/api/mentor/test/${testId}/updateCodingTests`, payload)
+      }
+
+      alert("✅ Test updated successfully!")
+    } catch (error) {
+      console.error("Failed to update test:", error)
+      alert("❌ Failed to update test.")
+    }
+  }
 
   if (loading) return <p>Loading test details...</p>
+  if (error) return <p style={{ color: "red" }}>{error}</p>
   if (!testData) return <p>Test not found.</p>
 
   return (
@@ -75,7 +130,7 @@ const handleSave = async () => {
 
       <Input
         placeholder="Test Name"
-        value={testData.name}
+        value={testData.name || ""}
         onChange={(e) => handleInputChange("name", e.target.value)}
       />
 
@@ -83,87 +138,123 @@ const handleSave = async () => {
         className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
         rows={4}
         placeholder="Description"
-        value={testData.description}
+        value={testData.description || ""}
         onChange={(e) => handleInputChange("description", e.target.value)}
       />
 
       <Input
         placeholder="Concepts Covered"
-        value={testData.conceptsCovered}
+        value={testData.conceptsCovered || ""}
         onChange={(e) => handleInputChange("conceptsCovered", e.target.value)}
       />
 
       <Input
-        placeholder="Type (e.g., COLLEGE)"
-        value={testData.type}
+        placeholder="Type (e.g., COLLEGE, APPTITUDE)"
+        value={testData.type || ""}
         onChange={(e) => handleInputChange("type", e.target.value)}
+        disabled // usually you might not want to allow changing test type here
       />
 
       <Input
         placeholder="Status (e.g., ACTIVE)"
-        value={testData.status}
+        value={testData.status || ""}
         onChange={(e) => handleInputChange("status", e.target.value)}
       />
 
       <Input
         type="number"
         placeholder="Duration (mins)"
-        value={testData.duration}
+        value={testData.duration || 0}
         onChange={(e) => handleInputChange("duration", +e.target.value)}
       />
 
       <Input
         type="number"
         placeholder="Number of Questions"
-        value={testData.noOfQuestions}
+        value={testData.noOfQuestions || 0}
         onChange={(e) => handleInputChange("noOfQuestions", +e.target.value)}
       />
 
-      <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Questions</h2>
-        {testData.questions.map((q: any, index: number) => (
-          <div key={q.id || index} className="border rounded-lg p-4 space-y-2">
-            <textarea
-              className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
-              rows={2}
-              placeholder="Question"
-              value={q.question}
-              onChange={(e) => handleQuestionChange(index, "question", e.target.value)}
-            />
+      {/* Aptitude questions editing */}
+      {type === "APPTITUDE" && testData.questions && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold">Aptitude Questions</h2>
+          {testData.questions.map((q: any, index: number) => (
+            <div key={q.id || index} className="border rounded-lg p-4 space-y-2">
+              <textarea
+                className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
+                rows={2}
+                placeholder="Question"
+                value={q.question || ""}
+                onChange={(e) => handleAptitudeQuestionChange(index, "question", e.target.value)}
+              />
 
-          {q.options.map((opt: string, optIndex: number) => (
-  <Input
-    key={optIndex}
-    value={opt}
-    onChange={(e) => {
-      const updatedOptions = [...q.options]
-      updatedOptions[optIndex] = e.target.value
-      handleQuestionChange(index, "options", updatedOptions)
-    }}
-    placeholder={`Option ${optIndex + 1}`}
-  />
-))}
+              {q.options?.map((opt: string, optIndex: number) => (
+                <Input
+                  key={optIndex}
+                  value={opt}
+                  onChange={(e) => handleAptitudeOptionChange(index, optIndex, e.target.value)}
+                  placeholder={`Option ${optIndex + 1}`}
+                />
+              ))}
 
-<Button
-  variant="outline"
-  size="sm"
-  onClick={() => {
-    const updatedOptions = [...q.options, ""]
-    handleQuestionChange(index, "options", updatedOptions)
-  }}
->
-  ➕ Add Option
-</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addAptitudeOption(index)}
+              >
+                ➕ Add Option
+              </Button>
 
+              <Input
+                placeholder="Correct Answer"
+                value={q.answer || ""}
+                onChange={(e) => handleAptitudeQuestionChange(index, "answer", e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
-            <Input
-              placeholder="Correct Answer"
-              value={q.answer}
-              onChange={(e) => handleQuestionChange(index, "answer", e.target.value)}
-            />
-          </div>
-        ))}
-      </div>
+      {/* Coding questions editing */}
+      {(type === "COLLEGE" || type === "TECHNICAL") && testData.technicalQuestions && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold">Coding Questions</h2>
+          {testData.technicalQuestions.map((q: any, index: number) => (
+            <div key={q.id || index} className="border rounded-lg p-4 space-y-2">
+              <textarea
+                className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
+                rows={4}
+                placeholder="Problem Statement"
+                value={q.problemStatement || ""}
+                onChange={(e) => handleCodingQuestionChange(index, "problemStatement", e.target.value)}
+              />
+
+              <textarea
+                className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
+                rows={2}
+                placeholder="Sample Input"
+                value={q.sampleInput || ""}
+                onChange={(e) => handleCodingQuestionChange(index, "sampleInput", e.target.value)}
+              />
+
+              <textarea
+                className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
+                rows={2}
+                placeholder="Sample Output"
+                value={q.sampleOutput || ""}
+                onChange={(e) => handleCodingQuestionChange(index, "sampleOutput", e.target.value)}
+              />
+
+              <Input
+                placeholder="Constraints"
+                value={q.constraints || ""}
+                onChange={(e) => handleCodingQuestionChange(index, "constraints", e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       <Button onClick={handleSave}>💾 Save Changes</Button>
     </div>
