@@ -215,46 +215,116 @@ export default function EditTestPage() {
           ))}
         </div>
       )}
+{/* Coding questions editing */}
+{(type === "COLLEGE" || type === "TECHNICAL") && testData.technicalQuestions && (
+  <div className="space-y-6">
+    <h2 className="text-xl font-semibold">Coding Questions</h2>
 
-      {/* Coding questions editing */}
-      {(type === "COLLEGE" || type === "TECHNICAL") && testData.technicalQuestions && (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Coding Questions</h2>
-          {testData.technicalQuestions.map((q: any, index: number) => (
-            <div key={q.id || index} className="border rounded-lg p-4 space-y-2">
-              <textarea
-                className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
-                rows={4}
-                placeholder="Problem Statement"
-                value={q.problemStatement || ""}
-                onChange={(e) => handleCodingQuestionChange(index, "problemStatement", e.target.value)}
-              />
+    {testData.technicalQuestions.map((q: any, qIndex: number) => (
+      <div key={q.id || qIndex} className="border rounded-lg p-4 space-y-4">
+        
+        {/* Question Heading */}
+        <h3 className="text-lg font-bold text-gray-800">
+          Question {qIndex + 1}
+        </h3>
 
+        {/* Problem Statement */}
+        <textarea
+          className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
+          rows={4}
+          placeholder="Problem Statement"
+          value={q.problemStatement || ""}
+          onChange={(e) => handleCodingQuestionChange(qIndex, "problemStatement", e.target.value)}
+        />
+
+        {/* Loop through sample input/output pairs */}
+        {(Array.isArray(q.sampleInput) ? q.sampleInput : [q.sampleInput || ""]).map(
+          (input: string, idx: number) => (
+            <div key={idx} className="space-y-2 border p-3 rounded">
+              {/* Pair Heading */}
+              <h4 className="font-semibold text-gray-700">Pair {idx + 1}</h4>
+
+              {/* Sample Input */}
+              <label className="block text-sm font-medium text-gray-600">
+                Sample Input {idx + 1}
+              </label>
               <textarea
                 className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
                 rows={2}
-                placeholder="Sample Input"
-                value={q.sampleInput || ""}
-                onChange={(e) => handleCodingQuestionChange(index, "sampleInput", e.target.value)}
+                placeholder={`Sample Input ${idx + 1}`}
+                value={input}
+                onChange={(e) => {
+                  const newInputs = [...(q.sampleInput || [])];
+                  newInputs[idx] = e.target.value;
+                  handleCodingQuestionChange(qIndex, "sampleInput", newInputs);
+                }}
               />
 
+              {/* Sample Output */}
+              <label className="block text-sm font-medium text-gray-600">
+                Sample Output {idx + 1}
+              </label>
               <textarea
                 className="w-full border rounded-md px-3 py-2 text-sm text-gray-700"
                 rows={2}
-                placeholder="Sample Output"
-                value={q.sampleOutput || ""}
-                onChange={(e) => handleCodingQuestionChange(index, "sampleOutput", e.target.value)}
-              />
-
-              <Input
-                placeholder="Constraints"
-                value={q.constraints || ""}
-                onChange={(e) => handleCodingQuestionChange(index, "constraints", e.target.value)}
+                placeholder={`Sample Output ${idx + 1}`}
+                value={q.sampleOutput?.[idx] || ""}
+                onChange={(e) => {
+                  const newOutputs = [...(q.sampleOutput || [])];
+                  newOutputs[idx] = e.target.value;
+                  handleCodingQuestionChange(qIndex, "sampleOutput", newOutputs);
+                }}
               />
             </div>
-          ))}
+          )
+        )}
+
+        {/* Add/Remove Pair Buttons */}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="px-3 py-1 bg-green-500 text-white rounded"
+            onClick={() => {
+              handleCodingQuestionChange(qIndex, "sampleInput", [...(q.sampleInput || []), ""]);
+              handleCodingQuestionChange(qIndex, "sampleOutput", [...(q.sampleOutput || []), ""]);
+            }}
+          >
+            + Add Pair
+          </button>
+
+          {q.sampleInput?.length > 1 && (
+            <button
+              type="button"
+              className="px-3 py-1 bg-red-500 text-white rounded"
+              onClick={() => {
+                handleCodingQuestionChange(
+                  qIndex,
+                  "sampleInput",
+                  q.sampleInput.slice(0, -1)
+                );
+                handleCodingQuestionChange(
+                  qIndex,
+                  "sampleOutput",
+                  q.sampleOutput.slice(0, -1)
+                );
+              }}
+            >
+              - Remove Pair
+            </button>
+          )}
         </div>
-      )}
+
+        {/* Constraints */}
+        <Input
+          placeholder="Constraints"
+          value={q.constraints || ""}
+          onChange={(e) => handleCodingQuestionChange(qIndex, "constraints", e.target.value)}
+        />
+      </div>
+    ))}
+  </div>
+)}
+
 
       <Button onClick={handleSave}>💾 Save Changes</Button>
     </div>

@@ -10,9 +10,11 @@ export const TestRequestSchema = z.object({
     required_error: "Skills are required"
   }).min(1, "Skills cannot be empty"),
 
-  conceptsList: z.string({
-    required_error: "Concept name is required"
-  }).min(1, "Concept name cannot be empty"),
+  conceptsList: z
+  .array(
+    z.string().min(1, "Concept name cannot be empty")
+  )
+  .nonempty({ message: "At least one concept is required" }),
 
   complexity: z.string({
     required_error: "Complexity is required"
