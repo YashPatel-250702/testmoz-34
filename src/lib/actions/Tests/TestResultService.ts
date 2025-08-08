@@ -1,5 +1,5 @@
 import { TestResults } from "@/lib/model/TestResult";
-import { getTestById } from "@/lib/repository/menotrRepository/TestRepository";
+import { getTestById, updateNoOfAttempts } from "@/lib/repository/menotrRepository/TestRepository";
 import { submitTestResult } from "@/lib/repository/menotrRepository/TestResultRepository";
 import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
 
@@ -13,6 +13,8 @@ export async function submitTestService(id:string,testResult:TestResults){
     if(result==null){
         throw new CommonErrorHandler("Failed to submit test",500);
     }
+    const noOfAttempts=test.noOfAttempts?test.noOfAttempts+1:0;
+    const res=await updateNoOfAttempts(id,noOfAttempts+1);
     return result;
    
     

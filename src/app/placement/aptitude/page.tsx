@@ -21,7 +21,7 @@ export default function AptitudeDashboardPage() {
             <CardDescription>Design and generate new aptitude assessments.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/create-test?type=aptitude">
+            <Link href="/mentor/create-test?type=APPTITUDE">
               {" "}
               {/* Updated link */}
               <Button className="w-full">Start Creating</Button>

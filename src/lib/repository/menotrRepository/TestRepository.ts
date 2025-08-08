@@ -31,9 +31,9 @@ export async function updateTestData(id: string, testData: any) {
   const updatedTest = await prisma.test.update({
     where: { id },
     data: {
-      name: testData.test.name,
+      name: testData.test.title,
       description: testData.test.description,
-      conceptsCovered: testData.test.conceptsCovered,
+      conceptsCovered: testData.test.conceptList,
       type: testData.test.type,
       status: 'ACTIVE',
       duration: testData.test.durationMinutes,
@@ -80,5 +80,10 @@ export async function viewResults(id:string) {
 
 export async function updateTestPublicLink(testId:string ,publicLink:string){
   const updatedTest=await prisma.test.update({where:{id:testId},data:{publicLink:publicLink}}); 
+  return updatedTest;
+}
+
+export async function updateNoOfAttempts(id:string,noOfAttempts:number){
+  const updatedTest=await prisma.test.update({where:{id:id},data:{noOfAttempts:noOfAttempts}}); 
   return updatedTest;
 }

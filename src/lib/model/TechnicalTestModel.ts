@@ -10,6 +10,7 @@ export interface CodingQuestion {
 
 export interface GeneratedTestRequest {
   title: string;
+  conceptList:string[]
   description: string;
   durationMinutes: number;
   numberOfQuestions: number;

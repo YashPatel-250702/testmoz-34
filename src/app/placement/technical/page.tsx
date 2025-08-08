@@ -21,7 +21,7 @@ export default function TechnicalDashboardPage() {
             <CardDescription>Design and generate new technical assessments.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/create-test?type=technical">
+            <Link href="/mentor/create-test?type=TECHNICAL">
               {" "}
               {/* Updated link */}
               <Button className="w-full">Start Creating</Button>

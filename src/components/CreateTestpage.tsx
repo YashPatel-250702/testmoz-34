@@ -48,11 +48,11 @@ export default function CreateTestPage() {
   const router = useRouter();
 
   const searchParams = useSearchParams()
-  const testTypeParam = searchParams.get("type")?.toUpperCase() || "GENERAL"
+  const testTypeParam = searchParams.get("type")?.toUpperCase() || "APPTITUDE"
 
-  const testType =
-    testTypeParam === "TECHNICAL" || testTypeParam === "APTITUDE" ? "PLACEMENT" : testTypeParam
-  const isAptitude = testTypeParam === "APTITUDE"
+     const testType =testTypeParam
+    // testTypeParam === "TECHNICAL" || testTypeParam === "APTITUDE" ?  : testTypeParam
+     const isAptitude = testTypeParam === "APPTITUDE"
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [formData, setFormData] = useState<TestFormData>({
@@ -68,13 +68,7 @@ export default function CreateTestPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedTest, setGeneratedTest] = useState<GeneratedTest | null>(null)
 
-  const handleSliderChange = (value: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      codingPercentage: value,
-      theoryPercentage: 100 - value,
-    }))
-  }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -113,32 +107,6 @@ export default function CreateTestPage() {
   const mentorId = typeof window !== "undefined" ? localStorage.getItem("mentorId") : null
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
-  // const handleSaveTest = async () => {
-  //   if (!mentorId) return alert("Mentor ID not found.")
-  //   if (!generatedTest) return alert("No test to save.")
-
-  //   try {
-  //     const res = await fetch(`/api/mentor/${mentorId}/manageTests`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //       body: JSON.stringify({
-  //         generatedTest,
-  //         ...formData,
-  //         testType,
-  //       }),
-  //     })
-
-  //     const data = await res.json()
-  //     if (!res.ok) throw new Error(data.message || "Failed to save test")
-  //     alert("Test saved successfully!")
-  //   } catch (err) {
-  //     console.error("Save test error:", err)
-  //     alert("Error saving test.")
-  //   }
-  // }
 const handleSaveTest = async () => {
   if (!mentorId) return alert("Mentor ID not found.");
   if (!generatedTest) return alert("No test to save.");
@@ -158,11 +126,16 @@ const handleSaveTest = async () => {
         durationMinutes: formData.duration,
         numberOfQuestions: formData.numberOfQuestions,
         complexity: formData.complexity.toLowerCase(),
+        conceptList: formData.conceptsList.split(","),
         type: testTypeRaw, // use raw TECHNICAL or COLLEGE
         questions: generatedTest.questions.map((q) => ({
           problemStatement: q.problemStatement,
-          sampleInput: q.sampleInput,
-          sampleOutput: q.sampleOutput,
+         sampleInput: Array.isArray(q.sampleInput)
+          ? q.sampleInput.join("\n") 
+          : String(q.sampleInput || ""),
+        sampleOutput: Array.isArray(q.sampleOutput)
+          ? q.sampleOutput.join("\n")
+          : String(q.sampleOutput || ""),
           constraints: q.constraints,
           complexity: q.complexity,
         })),
@@ -245,7 +218,8 @@ const handleSaveTest = async () => {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                   {!isAptitude &&(
+                     <div className="space-y-2">
   <Label htmlFor="skills">Skills</Label>
   <Input
     id="skills"
@@ -256,6 +230,7 @@ const handleSaveTest = async () => {
     required
   />
 </div>
+                   )}
 
 
                     <div className="grid grid-cols-2 gap-4">
@@ -301,35 +276,6 @@ const handleSaveTest = async () => {
                       </Select>
                     </div>
 
-                    {/* {!isAptitude && (
-                      <div className="space-y-4">
-                        <Label>Question Type Distribution</Label>
-                        <div>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-sm font-medium">Coding Questions</span>
-                            <span className="text-sm text-gray-600">{formData.codingPercentage}%</span>
-                          </div>
-                          <Slider
-                            value={formData.codingPercentage}
-                            onChange={handleSliderChange}
-                            max={100}
-                            step={5}
-                          />
-                        </div>
-                        <div>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-sm font-medium">Theory Questions</span>
-                            <span className="text-sm text-gray-600">{formData.theoryPercentage}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${formData.theoryPercentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )} */}
 
                     <Button type="submit" className="w-full" disabled={isGenerating}>
                       {isGenerating ? "⏳ Generating Test..." : "✨ Generate Test"}

@@ -21,7 +21,7 @@ export default function CollegeDashboardPage() {
             <CardDescription>Design and generate new college-specific assessments.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/create-test?type=college">
+            <Link href="/mentor/create-test?type=COLLEGE">
               <Button className="w-full">Start Creating</Button>
             </Link>
           </CardContent>

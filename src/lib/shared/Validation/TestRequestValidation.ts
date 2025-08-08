@@ -2,7 +2,7 @@ import {z} from "zod";
 
 
 export const TestRequestSchema = z.object({
-  testType: z.enum(['COLLEGE', 'PLACEMENT'], {
+  testType: z.enum(['COLLEGE', 'APPTITUDE','TECHNICAL'], {
     required_error: "Test type is required"
   }),
 
