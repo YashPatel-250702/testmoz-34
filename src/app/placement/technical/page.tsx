@@ -35,7 +35,7 @@ export default function TechnicalDashboardPage() {
             <CardDescription>View, edit, and manage existing technical tests.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/mentor/manage-tests?type=PLACEMENT">
+            <Link href="/mentor/manage-tests?type=TECHNICAL">
               <Button variant="outline" className="w-full bg-transparent">
                 View & Manage
               </Button>

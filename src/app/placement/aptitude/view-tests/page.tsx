@@ -8,7 +8,7 @@ import axios from "axios"
 import { Test } from "@/lib/model/Test"
 import { toast } from "react-toastify"
 import { Loader2 } from "lucide-react"
-
+ 
 export default function AptitudeViewTestsPage() {
    const [activeTests, setActiveTests] = useState<Test[] | null>(null)
     const [loading, setLoading] = useState(true)
@@ -30,7 +30,7 @@ export default function AptitudeViewTestsPage() {
         setLoading(false)
       }
     }
-  
+ 
     useEffect(() => {
       fetchTests()
     }, [])
@@ -40,9 +40,9 @@ export default function AptitudeViewTestsPage() {
       const response = await axios.get(`/api/mentor/test/${testId}/generateLink`)
       if (response.status === 200) {
         await fetchTests()
-        
+       
         toast.success("Public link generated successfully.")
-        
+       
       }
     } catch (error) {
       console.error("Error generating link:", error)
@@ -51,13 +51,13 @@ export default function AptitudeViewTestsPage() {
       setLinkLoadingId(null)
     }
   }
-
+ 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
      
-
+ 
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Available Aptitude Tests</h1>
-
+ 
       <div className="grid gap-6">
          {loading ? (
         <div className="flex justify-center items-center h-[60vh]">
@@ -124,3 +124,5 @@ export default function AptitudeViewTestsPage() {
     </div>
   )
 }
+ 
+ 
