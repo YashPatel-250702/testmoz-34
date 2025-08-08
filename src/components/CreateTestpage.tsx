@@ -33,7 +33,7 @@ interface TestQuestion {
   options?: string[]
   answer?: string
   complexity: string
-  sampleInputt?: string
+  sampleInput?: string
   sampleOutput?: string
   constraints?: string
 }
@@ -148,7 +148,7 @@ const handleSaveTest = async () => {
   const isCodingTest = testTypeRaw === "TECHNICAL" || testTypeRaw === "COLLEGE";
 
   const endpoint = isCodingTest
-    ? `/api/mentor/${mentorId}/saveCodingTest`
+    ? `/api/mentor/${mentorId}/saveCodingTests`
     : `/api/mentor/${mentorId}/manageTests`;
 
   const payload = isCodingTest
@@ -161,7 +161,7 @@ const handleSaveTest = async () => {
         type: testTypeRaw, // use raw TECHNICAL or COLLEGE
         questions: generatedTest.questions.map((q) => ({
           problemStatement: q.problemStatement,
-          sampleInput: q.sampleInputt,
+          sampleInput: q.sampleInput,
           sampleOutput: q.sampleOutput,
           constraints: q.constraints,
           complexity: q.complexity,
@@ -352,10 +352,10 @@ const handleSaveTest = async () => {
                           <h4 className="font-medium text-sm mb-2">
                             Question {index + 1} ({q.complexity})
                           </h4>
-                          <p className="text-sm mb-2">{q.problemStatement}</p>
-                          <p className="text-sm mb-2">{q.sampleInputt}</p>
-                          <p className="text-sm mb-2">{q.sampleOutput}</p>
-                          <p className="text-sm mb-2">{q.constraints}</p>
+                          <p className="text-sm mb-2">Problem Statement: {q.problemStatement}</p>
+                          <p className="text-sm mb-2">Sample Input: {q.sampleInput}</p>
+                          <p className="text-sm mb-2">Sample Output: {q.sampleOutput}</p>
+                          <p className="text-sm mb-2">Constraints: {q.constraints}</p>
                           {Array.isArray(q.options) && q.options.length > 0 && (
                             <ul className="list-disc ml-6 text-sm space-y-1">
                               {q.options.map((opt, i) => (
