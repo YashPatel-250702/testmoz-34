@@ -19,6 +19,7 @@ export default function CollegeViewTestsPage() {
   const [activeTests, setActiveTests] = useState<Test[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const domain=process.env.NEXT_PUBLIC_DOMAIN_LINK;
   const fetchTests = async () => {
     setLoading(true)
@@ -89,9 +90,18 @@ export default function CollegeViewTestsPage() {
 
               {test.publicLink ? (
                 <div className="flex gap-2 flex-wrap">
-                  <Link href={`${domain}/test/${test.id}?${test.publicLink}`} target="_blank" rel="noopener noreferrer">
-                    <Button variant="outline">Open Public Test Link</Button>
-                  </Link>
+                 <Button
+  variant="outline"
+  disabled={copiedId === test.id}
+  onClick={() => {
+    navigator.clipboard.writeText(`${domain}/test/${test.id}?${test.publicLink}`);
+    toast.success("Link copied to clipboard");
+    setCopiedId(test.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }}
+>
+  {copiedId === test.id ? "Copied!" : "Copy Public Test Link"}
+</Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleGenerateLink(test.id)}
