@@ -46,7 +46,7 @@ model Test {
   id              String      @id @default(cuid())
   name            String?
   description     String?
-  conceptsCovered String?
+  conceptsCovered String[]
   type            TestType?
   status          TestStatus?
   duration        Int?

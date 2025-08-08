@@ -13,6 +13,8 @@ export async function saveCodingTestRepo(menotrId:string, codingTest:GeneratedTe
         type: codingTest.type,
         status: 'ACTIVE',
         mentorId: menotrId,
+        noOfAttempts:0,
+        conceptsCovered:codingTest.conceptList,
         technicalQuestions: {
           create: codingTest.questions.map((q) => ({
             problemStatement: q.problemStatement,
