@@ -95,41 +95,53 @@ export default function PreviewTestPage() {
       )}
 
       {/* Coding Questions */}
-      {(type === "COLLEGE" || type === "TECHNICAL") && testData.technicalQuestions && (
-        <section>
-          <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Coding Questions</h2>
-          <div className="space-y-6">
-            {testData.technicalQuestions.map((q: any, i: number) => (
-              <div key={q.id || i} className="border rounded-lg bg-white shadow p-6">
-                <p className="font-semibold text-lg mb-3">
-                  Question {i + 1}:
-                </p>
-                <p className="mb-4 whitespace-pre-line">{q.problemStatement}</p>
+{(type === "COLLEGE" || type === "TECHNICAL") && testData.technicalQuestions && (
+  <section>
+    <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Coding Questions</h2>
+    <div className="space-y-6">
+      {testData.technicalQuestions.map((q: any, i: number) => (
+        <div key={q.id || i} className="border rounded-lg bg-white shadow p-6">
+          {/* Question Title */}
+          <p className="font-semibold text-lg mb-3">Question {i + 1}</p>
 
-                {q.sampleInput && (
-                  <div className="mb-3 bg-gray-100 p-3 rounded font-mono text-sm whitespace-pre-wrap">
-                    <strong>Sample Input:</strong>
-                    <pre>{q.sampleInput}</pre>
+          {/* Problem Statement */}
+          <p className="mb-4 whitespace-pre-line">{q.problemStatement}</p>
+
+          {/* Paired Sample Inputs & Outputs */}
+          {q.sampleInput && q.sampleOutput && (
+            <div className="mb-3 space-y-4">
+              {(Array.isArray(q.sampleInput) ? q.sampleInput : [q.sampleInput]).map(
+                (input: any, idx: number) => (
+                  <div key={idx} className="bg-gray-50 p-3 rounded">
+                    <div className="bg-gray-100 p-3 rounded font-mono text-sm whitespace-pre-wrap mb-2">
+                      <strong>Sample Input {idx + 1}:</strong>
+                      <pre>{input}</pre>
+                    </div>
+                    {q.sampleOutput[idx] && (
+                      <div className="bg-gray-100 p-3 rounded font-mono text-sm whitespace-pre-wrap">
+                        <strong>Sample Output {idx + 1}:</strong>
+                        <pre>{q.sampleOutput[idx]}</pre>
+                      </div>
+                    )}
                   </div>
-                )}
+                )
+              )}
+            </div>
+          )}
 
-                {q.sampleOutput && (
-                  <div className="mb-3 bg-gray-100 p-3 rounded font-mono text-sm whitespace-pre-wrap">
-                    <strong>Sample Output:</strong>
-                    <pre>{q.sampleOutput}</pre>
-                  </div>
-                )}
+          {/* Constraints */}
+          {q.constraints && (
+            <p className="text-sm italic text-gray-600">
+              <strong>Constraints:</strong> {q.constraints}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
 
-                {q.constraints && (
-                  <p className="text-sm italic text-gray-600">
-                    <strong>Constraints:</strong> {q.constraints}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+
     </div>
   )
 }

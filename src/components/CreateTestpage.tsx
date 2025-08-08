@@ -10,16 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Menu } from "lucide-react"
-
+import { Menu, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
-
 
 interface TestFormData {
-  conceptsList: string
+  conceptsList: string[]
   duration: number
   complexity: string
   numberOfQuestions: number
@@ -45,30 +41,26 @@ interface GeneratedTest {
 }
 
 export default function CreateTestPage() {
-  const router = useRouter();
-
+  const router = useRouter()
   const searchParams = useSearchParams()
   const testTypeParam = searchParams.get("type")?.toUpperCase() || "APPTITUDE"
 
-     const testType =testTypeParam
-    // testTypeParam === "TECHNICAL" || testTypeParam === "APTITUDE" ?  : testTypeParam
-     const isAptitude = testTypeParam === "APPTITUDE"
-
+  const isAptitude = testTypeParam === "APPTITUDE"
+  const testType = testTypeParam
+  const [isSaving, setIsSaving] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [formData, setFormData] = useState<TestFormData>({
-    conceptsList: "",
+    conceptsList: [""],
     duration: 30,
     complexity: "Easy",
     numberOfQuestions: 10,
     codingPercentage: isAptitude ? 0 : 100,
     theoryPercentage: isAptitude ? 100 : 0,
-  skills: isAptitude ? "aptitude" : "",
+    skills: isAptitude ? "aptitude" : "",
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedTest, setGeneratedTest] = useState<GeneratedTest | null>(null)
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,93 +99,93 @@ export default function CreateTestPage() {
   const mentorId = typeof window !== "undefined" ? localStorage.getItem("mentorId") : null
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
-const handleSaveTest = async () => {
-  if (!mentorId) return alert("Mentor ID not found.");
-  if (!generatedTest) return alert("No test to save.");
+  const handleSaveTest = async () => {
+    if (!mentorId) return alert("Mentor ID not found.")
+    if (!generatedTest) return alert("No test to save.")
 
-  const testTypeRaw = searchParams.get("type")?.toUpperCase(); // e.g., "TECHNICAL", "COLLEGE", "APTITUDE"
-  const isAptitude = testTypeRaw === "APTITUDE";
-  const isCodingTest = testTypeRaw === "TECHNICAL" || testTypeRaw === "COLLEGE";
+    const testTypeRaw = searchParams.get("type")?.toUpperCase()
+    const isAptitude = testTypeRaw === "APPTITUDE"
+    const isCodingTest = testTypeRaw === "TECHNICAL" || testTypeRaw === "COLLEGE"
 
-  const endpoint = isCodingTest
-    ? `/api/mentor/${mentorId}/saveCodingTests`
-    : `/api/mentor/${mentorId}/manageTests`;
+    const endpoint = isCodingTest
+      ? `/api/mentor/${mentorId}/saveCodingTests`
+      : `/api/mentor/${mentorId}/manageTests`
 
-  const payload = isCodingTest
-    ? {
-        title: generatedTest.title,
-        description: generatedTest.description,
-        durationMinutes: formData.duration,
-        numberOfQuestions: formData.numberOfQuestions,
-        complexity: formData.complexity.toLowerCase(),
-        conceptList: formData.conceptsList.split(","),
-        type: testTypeRaw, // use raw TECHNICAL or COLLEGE
-        questions: generatedTest.questions.map((q) => ({
-          problemStatement: q.problemStatement,
-         sampleInput: Array.isArray(q.sampleInput)
-          ? q.sampleInput.join("\n") 
-          : String(q.sampleInput || ""),
-        sampleOutput: Array.isArray(q.sampleOutput)
-          ? q.sampleOutput.join("\n")
-          : String(q.sampleOutput || ""),
-          constraints: q.constraints,
-          complexity: q.complexity,
-        })),
-      }
-    : {
-        generatedTest,
-        ...formData,
-        testType,
-      };
+    const payload = isCodingTest
+      ? {
+          title: generatedTest.title,
+          description: generatedTest.description,
+          durationMinutes: formData.duration,
+          numberOfQuestions: formData.numberOfQuestions,
+          complexity: formData.complexity.toLowerCase(),
+          conceptList: formData.conceptsList,
+          type: testTypeRaw,
+          questions: generatedTest.questions.map((q) => ({
+            problemStatement: q.problemStatement,
+            sampleInput: q.sampleInput,
+            sampleOutput: q.sampleOutput,
+            constraints: q.constraints,
+            complexity: q.complexity,
+          })),
+        }
+      : {
+          generatedTest,
+          ...formData,
+          testType,
+        }
 
-  try {
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed to save test");
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Failed to save test")
 
-    alert("Test saved successfully!");
-  } catch (err) {
-    console.error("Save test error:", err);
-    alert("Error saving test.");
+      alert("Test saved successfully!")
+    } catch (err) {
+      console.error("Save test error:", err)
+      alert("Error saving test.")
+    }
   }
-};
 
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
       {sidebarOpen && <DashboardSidebar collapsible="icon" />}
       <SidebarInset>
         {/* Navbar */}
-    <div className="flex items-center justify-between p-4 border-b bg-white">
-  <div className="flex items-center gap-2">
-      <Button variant="ghost" size="sm" onClick={() => router.back()}>
-      <ArrowLeft className="w-5 h-5" />
-    </Button>
-    <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
-      <Menu className="w-5 h-5" />
-    </Button>
-  
-  </div>
-  <div className="flex gap-2">
-    <Link href="/mentor/dashboard">
-      <Button variant="outline" size="sm">Dashboard</Button>
-    </Link>
-    <Link href="/college">
-      <Button variant="outline" size="sm">College</Button>
-    </Link>
-    <Link href="/placement">
-      <Button variant="outline" size="sm">Placement</Button>
-    </Link>
-  </div>
-</div>
-
+        <div className="flex items-center justify-between p-4 border-b bg-white">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)}>
+              <Menu className="w-5 h-5" />
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Link href="/mentor/dashboard">
+              <Button variant="outline" size="sm">
+                Dashboard
+              </Button>
+            </Link>
+            <Link href="/college">
+              <Button variant="outline" size="sm">
+                College
+              </Button>
+            </Link>
+            <Link href="/placement">
+              <Button variant="outline" size="sm">
+                Placement
+              </Button>
+            </Link>
+          </div>
+        </div>
 
         {/* Page content */}
         <div className="min-h-screen bg-muted/20 p-4 md:p-6">
@@ -207,32 +199,67 @@ const handleSaveTest = async () => {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Concept Names */}
                     <div className="space-y-2">
-                      <Label htmlFor="conceptsList">Concept Name</Label>
-                      <Input
-                        id="conceptsList"
-                        placeholder="e.g., Control Statements"
-                        value={formData.conceptsList}
-                        onChange={(e) => setFormData({ ...formData, conceptsList: e.target.value })}
-                        required
-                      />
+                      <Label>Concept Names</Label>
+                      {(formData.conceptsList || [""]).map((concept, idx) => (
+                        <div key={idx} className="flex gap-2">
+                          <Input
+                            placeholder={`Concept ${idx + 1}`}
+                            value={concept}
+                            onChange={(e) => {
+                              const updatedConcepts = [...formData.conceptsList]
+                              updatedConcepts[idx] = e.target.value
+                              setFormData({ ...formData, conceptsList: updatedConcepts })
+                            }}
+                          />
+                          {!isAptitude && formData.conceptsList.length > 1 && (
+                            <button
+                              type="button"
+                              className="px-3 py-1 bg-red-500 text-white rounded"
+                              onClick={() => {
+                                const updatedConcepts = formData.conceptsList.filter((_, i) => i !== idx)
+                                setFormData({ ...formData, conceptsList: updatedConcepts })
+                              }}
+                            >
+                              -
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      {!isAptitude && (
+                        <button
+                          type="button"
+                          className="px-3 py-1 bg-green-500 text-white rounded"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              conceptsList: [...(formData.conceptsList || []), ""],
+                            })
+                          }
+                        >
+                          + Add Concept
+                        </button>
+                      )}
                     </div>
 
-                   {!isAptitude &&(
-                     <div className="space-y-2">
-  <Label htmlFor="skills">Skills</Label>
-  <Input
-    id="skills"
-    placeholder="e.g., python, javascript, c++"
-    value={formData.skills}
-    readOnly={isAptitude}
-    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
-    required
-  />
-</div>
-                   )}
+                    {/* Skills input (only for coding tests) */}
+                  
+                   <div className="space-y-2">
+                      <Label htmlFor="skills">Skills</Label>
+                      <Input
+                        id="skills"
+                        placeholder="e.g., python, javascript, c++"
+                        value={formData.skills}
+                        readOnly={isAptitude}
+                        onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                        required
+                        disabled={isGenerating || isSaving}
+                      />
+                    </div>
+ 
 
-
+                    {/* Duration & No. of Questions */}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="duration">Duration (minutes)</Label>
@@ -262,6 +289,7 @@ const handleSaveTest = async () => {
                       </div>
                     </div>
 
+                    {/* Complexity */}
                     <div className="space-y-2">
                       <Label htmlFor="complexity">Complexity Level</Label>
                       <Select
@@ -275,7 +303,6 @@ const handleSaveTest = async () => {
                         <option value="Mixed">Mixed</option>
                       </Select>
                     </div>
-
 
                     <Button type="submit" className="w-full" disabled={isGenerating}>
                       {isGenerating ? "⏳ Generating Test..." : "✨ Generate Test"}
@@ -299,15 +326,39 @@ const handleSaveTest = async () => {
                             Question {index + 1} ({q.complexity})
                           </h4>
                           <p className="text-sm mb-2">Problem Statement: {q.problemStatement}</p>
-                          <p className="text-sm mb-2">Sample Input: {q.sampleInput}</p>
-                          <p className="text-sm mb-2">Sample Output: {q.sampleOutput}</p>
-                          <p className="text-sm mb-2">Constraints: {q.constraints}</p>
-                          {Array.isArray(q.options) && q.options.length > 0 && (
-                            <ul className="list-disc ml-6 text-sm space-y-1">
-                              {q.options.map((opt, i) => (
-                                <li key={i}>{opt}</li>
-                              ))}
-                            </ul>
+
+                          {/* Aptitude: Show options with correct answer */}
+                          {isAptitude && Array.isArray(q.options) && q.options.length > 0 && (
+                            <div className="space-y-1">
+                              {q.options.map((opt, i) => {
+                                const label = String.fromCharCode(65 + i) // A, B, C...
+                                const isCorrect = opt === q.answer
+                                return (
+                                  <div
+                                    key={i}
+                                    className={`p-2 border rounded ${
+                                      isCorrect ? "bg-green-100 font-semibold" : "bg-white"
+                                    }`}
+                                  >
+                                    {label}. {opt}
+                                  </div>
+                                )
+                              })}
+                              {q.answer && (
+                                <p className="mt-2 text-sm text-green-600 font-semibold">
+                                  Correct Answer: {q.answer}
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Coding/Technical: Keep sample input/output */}
+                          {!isAptitude && (
+                            <>
+                              <p className="text-sm mb-2">Sample Input: {q.sampleInput}</p>
+                              <p className="text-sm mb-2">Sample Output: {q.sampleOutput}</p>
+                              <p className="text-sm mb-2">Constraints: {q.constraints}</p>
+                            </>
                           )}
                         </div>
                       ))}
@@ -335,8 +386,3 @@ const handleSaveTest = async () => {
     </SidebarProvider>
   )
 }
-
-
-
-
-

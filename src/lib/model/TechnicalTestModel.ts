@@ -1,9 +1,10 @@
-import { TestType } from "@prisma/client";
+import { TestType } from "./TestRequest";
+
 
 export interface CodingQuestion {
   problemStatement: string;
-  sampleInput: string;
-  sampleOutput: string;
+  sampleInput: string[];
+  sampleOutput: string[];
   constraints?: string;
   complexity: string;
 }
