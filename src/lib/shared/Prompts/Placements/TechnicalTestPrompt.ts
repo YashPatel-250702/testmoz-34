@@ -22,8 +22,8 @@ Generate:
    - "complexity": overall complexity level of the test
    - "questions": an array of ${body.numberOfQuestions} **coding questions**, each containing:
      - "problemStatement": clearly defined problem
-     - "sampleInput": sample input to the problem
-     - "sampleOutput": expected output for the input
+     - "sampleInput": 3 sample input to the problem
+     - "sampleOutput": 3 expected output for the input
      - "constraints": any constraints (e.g., time/space, input size, valid values)
      - "complexity": same as overall complexity
 
@@ -47,8 +47,8 @@ Only return valid **pure JSON** in the following format:
   "questions": [
     {
       "problemStatement": "Your coding question here...",
-      "sampleInput": "Sample input string here...",
-      "sampleOutput": "Expected output here...",
+      "sampleInput": ["3 Sample inputs string[] here..."],
+      "sampleOutput": ["3 Expected outputs string[] here respected to inputs..."],
       "constraints": "Any specific constraints",
       "complexity": "${body.complexity}"
     }

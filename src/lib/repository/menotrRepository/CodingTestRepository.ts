@@ -1,6 +1,7 @@
 import { GeneratedTestRequest } from "@/lib/model/TechnicalTestModel";
 import prisma from "@/lib/shared/Common/PrismaClient";
-import { TestType } from "@prisma/client";
+
+
 
 export async function saveCodingTestRepo(menotrId:string, codingTest:GeneratedTestRequest) {
 
@@ -22,7 +23,8 @@ export async function saveCodingTestRepo(menotrId:string, codingTest:GeneratedTe
             sampleOutput: q.sampleOutput,
             constraints: q.constraints,
             complexity: q.complexity,
-            type: TestType.TECHNICAL,
+          
+            
           })),
         },
       },
@@ -55,7 +57,7 @@ export async function updateCodingTestRepo(testId: string, testData: GeneratedTe
           sampleOutput: q.sampleOutput,
           constraints: q.constraints,
           complexity: q.complexity,
-          type: TestType.TECHNICAL,
+       
         })),
       },
     },
