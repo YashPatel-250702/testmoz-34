@@ -16,7 +16,8 @@ datasource db {
 
 enum TestType {
   COLLEGE
-  PLACEMENT
+  TECHNICAL
+  APPTITUDE
 }
 
 enum TestStatus {
@@ -57,8 +58,26 @@ model Test {
   mentor         Mentor?      @relation(fields: [mentorId], references: [id])
   publicLink      String?
  questions       TestQuestions[] 
+ technicalQuestions      TechnicalTestQuestions[] 
   attempts  TestResults[]
 }
+
+model TechnicalTestQuestions{
+  id            String   @id @default(uuid())
+  problemStatement  String
+  sampleInput   String
+  sampleOutput  String
+  constraints   String?
+  complexity    String?
+  type         TestType?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  testId String
+  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+}
+
 
 model TestQuestions {
   id        String   @id @default(cuid())

@@ -25,7 +25,7 @@ interface TestItem {
 export default function ManageTestsPage() {
   const [tests, setTests] = useState<TestItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [type, setType] = useState("COLLEGE") 
+  const [type, setType] = useState("") 
 
   const router = useRouter()
   const searchParams = useSearchParams()

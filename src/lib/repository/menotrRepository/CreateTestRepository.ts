@@ -9,7 +9,7 @@ export async function saveGeneratedTest(mentorId: string, testData: AIGeneratedT
       name: testData.generatedTest.title,
       description: testData.generatedTest.description,
       conceptsCovered: testData.generatedTest.title, 
-      type: testData.testType,
+      type: 'APPTITUDE',
       status: 'ACTIVE',
       duration: testData.generatedTest.durationMinutes,
       noOfQuestions: testData.generatedTest.numberOfQuestions,
