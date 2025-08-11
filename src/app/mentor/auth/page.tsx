@@ -160,13 +160,13 @@ const handleSubmit = async () => {
             >
               Login
             </Button>
-            <Button
+            {/* <Button
               variant={!isLogin ? "default" : "outline"}
               onClick={() => setIsLogin(false)}
               className="w-1/2"
             >
               Signup
-            </Button>
+            </Button> */}
           </div>
 
           <Card>

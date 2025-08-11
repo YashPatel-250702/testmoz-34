@@ -17,7 +17,7 @@ export default function HomePage() {
       <section className="flex flex-col items-center justify-center text-center px-6 py-20 bg-gray-100">
         <h2 className="text-3xl md:text-4xl font-bold mb-4">Empowering Assessments with Precision</h2>
         <p className="max-w-xl text-muted-foreground mb-6">
-          Quiztopher is a comprehensive platform designed for college and placement assessments.
+         Tekworks is a comprehensive platform designed for college and placement assessments.
           Crafted to simplify test management for mentors and elevate student evaluation.
         </p>
         <Link href="/mentor/auth">
@@ -74,7 +74,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="bg-gray-100 text-center py-6 text-sm text-muted-foreground mt-auto">
-        © {new Date().getFullYear()} Quiztopher. All rights reserved.
+        © {new Date().getFullYear()} Tekworks. All rights reserved.
       </footer>
     </div>
   )
