@@ -106,7 +106,7 @@ export default function ManageTestsPage() {
                         : "bg-yellow-100 text-yellow-800"
                     }`}
                   >
-                    {test.status === "ACTIVE" ? "Active" : "Draft"}
+                    {test.status === "ACTIVE" ? "Active" : "InActive"}
                   </span>
                 </div>
               </CardHeader>
