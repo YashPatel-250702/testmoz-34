@@ -1,6 +1,6 @@
-import { TestResults } from "@/lib/model/TestResult";
+import { TechnicalTestResults, TestResults } from "@/lib/model/TestResult";
 import { getTestById, updateNoOfAttempts } from "@/lib/repository/menotrRepository/TestRepository";
-import { submitTestResult } from "@/lib/repository/menotrRepository/TestResultRepository";
+import { submitTechnicalTestResult, submitTestResult } from "@/lib/repository/menotrRepository/TestResultRepository";
 import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
 
 export async function submitTestService(id:string,testResult:TestResults){
@@ -18,4 +18,20 @@ export async function submitTestService(id:string,testResult:TestResults){
     return result;
    
     
+}
+
+export async function submitTechnicalTestService(id:string,testResult:TechnicalTestResults){
+    const test=await getTestById(id);
+    if(test==null){
+        throw new CommonErrorHandler("Test not found",404);
+    }
+     testResult.testId=test.id;
+    const result=await submitTechnicalTestResult(testResult);
+    if(result==null){
+        throw new CommonErrorHandler("Failed to submit test",500);
+    }
+    const noOfAttempts=test.noOfAttempts?test.noOfAttempts+1:0;
+    const res=await updateNoOfAttempts(id,noOfAttempts+1);
+    return result;
+
 }
