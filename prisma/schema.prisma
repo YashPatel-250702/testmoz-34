@@ -25,7 +25,7 @@ enum TestStatus {
   INACTIVE
 }
 
-enum TesResultStatus {
+enum TestResultStatus {
   PASSED
   FAILED
 }
@@ -60,6 +60,7 @@ model Test {
   questions       TestQuestions[] 
   technicalQuestions      TechnicalTestQuestions[] 
   attempts  TestResults[]
+  TechnicalTestResults TechnicalTestResults[]
 }
 
 model TechnicalTestQuestions{
@@ -92,6 +93,30 @@ model TestQuestions {
 
   @@index([testId])
 }
+model TechnicalTestResults {
+  id        String   @id @default(cuid())
+  userEmail         String
+  userMobile        String?
+  userName          String?
+  question_ids      String[]         
+  answers           String[]         
+  test_cases_passed String[]        
+  createdAt         DateTime         @default(now())
+  score             Int?
+  status            TesResultStatus?
+  updatedAt         DateTime  @updatedAt
+  testId            String
+  test   Test   @relation(fields: [testId], references: [id])
+
+  @@map("TechnicalTestResults")
+}
+
+enum TesResultStatus {
+  PASSED
+  FAILED
+  IN_PROGRESS
+}
+
 
 model TestResults {
   id         String           @id @default(cuid())
@@ -102,6 +127,8 @@ model TestResults {
   status     TesResultStatus?
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
+  question_ids      String[]         
+  answers           String[]
 
   testId String
   test   Test   @relation(fields: [testId], references: [id])
