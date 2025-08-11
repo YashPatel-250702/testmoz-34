@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select"
 import { Menu, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { toast } from "react-toastify"
 
 interface TestFormData {
   conceptsList: string[]
@@ -44,6 +45,7 @@ export default function CreateTestPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const testTypeParam = searchParams.get("type")?.toUpperCase() || "APPTITUDE"
+const [savedTestId, setSavedTestId] = useState<string | null>(null)
 
   const isAptitude = testTypeParam === "APPTITUDE"
   const testType = testTypeParam
@@ -61,6 +63,7 @@ export default function CreateTestPage() {
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedTest, setGeneratedTest] = useState<GeneratedTest | null>(null)
+const [isSaveDone, setIsSaveDone] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,14 +148,29 @@ export default function CreateTestPage() {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Failed to save test")
+       if (!res.ok) throw new Error(data.message || "Failed to save test")
 
-      alert("Test saved successfully!")
-    } catch (err) {
-      console.error("Save test error:", err)
-      alert("Error saving test.")
-    }
+    toast.success("Test saved successfully!")
+
+    // Store the saved test ID from response
+    setSavedTestId(data.testResult?.id || null)
+    setIsSaveDone(true)  // mark save completed
+  } catch (err) {
+    console.error("Save test error:", err)
+    toast.error("Error saving test.")
   }
+}
+
+
+  const handleEditQuestions = () => {
+  if (!savedTestId) {
+    toast.error("Test ID not found. Please save the test first.")
+    return
+  }
+
+  router.push(`/mentor/edit-test/${savedTestId}`)
+}
+
 
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
@@ -364,12 +382,29 @@ export default function CreateTestPage() {
                       ))}
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <Button className="flex-1" onClick={handleSaveTest}>
-                        💾 Save Test
-                      </Button>
-                      <Button variant="outline" className="flex-1 bg-transparent">
-                        ✏️ Edit Questions
-                      </Button>
+                    <Button
+  className="flex-1"
+  onClick={handleSaveTest}
+  disabled={isSaving || isGenerating || isSaveDone}  // disable if already saved
+>
+  {isSaving ? "💾 Saving..." : "💾 Save Test"}
+</Button>
+
+<Button
+  variant="outline"
+  className="flex-1 bg-transparent"
+  onClick={() => {
+    if (!savedTestId) {
+      toast.error("Test ID not found. Please save the test first.")
+      return
+    }
+    router.push(`/mentor/edit-test/${savedTestId}`)
+  }}
+  disabled={!isSaveDone || isSaving || isGenerating} // enable only after save success
+>
+  ✏️ Edit Questions
+</Button>
+
                     </div>
                   </CardContent>
                 </Card>
