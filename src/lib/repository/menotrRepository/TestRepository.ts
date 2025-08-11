@@ -69,14 +69,19 @@ export async function getAllTestsByType(menotrId:string, testType:TestType){
 }
 
 
-
-
-export async function viewResults(id:string) {
+export async function viewAptitudeResults(id:string) {
    const testResults = await prisma.testResults.findMany({
       where: { testId: id },
    });
    return testResults;
 }
+
+export async function viewTechnicalResults(id:string) {
+   const technicalTestResults = await prisma.technicalTestResults.findMany({
+      where: { testId: id },
+   });
+   return technicalTestResults;
+  }
 
 export async function updateTestPublicLink(testId:string ,publicLink:string){
   const updatedTest=await prisma.test.update({where:{id:testId},data:{publicLink:publicLink}}); 
