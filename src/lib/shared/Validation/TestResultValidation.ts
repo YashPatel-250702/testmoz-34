@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const TestResultsSchema = z.object({
-
   userEmail: z
     .string({ required_error: "Email is required" })
     .email("Invalid email address"),
@@ -29,6 +28,6 @@ export const TestResultsSchema = z.object({
     .nullable()
     .optional(),
 
+  question_ids: z.array(z.string()).min(1, "Question IDs are required"),
+  answers: z.array(z.string()).min(1, "Answers are required"),
 });
-
-
