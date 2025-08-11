@@ -78,7 +78,7 @@ const [isSaveDone, setIsSaveDone] = useState(false)
       dataToSend.codingPercentage = 0
       dataToSend.theoryPercentage = 100
     }
-
+  setIsSaving(true)
     try {
       const mentorId = typeof window !== "undefined" ? localStorage.getItem("mentorId") : null
       const res = await fetch(`/api/mentor/${mentorId}/createTests`, {
@@ -91,11 +91,14 @@ const [isSaveDone, setIsSaveDone] = useState(false)
       if (!res.ok) throw new Error(result.message || "Failed to generate test")
 
       setGeneratedTest(result.generatedTest)
+      toast.success("Test generated successfully!")
+
     } catch (err) {
       console.error("Error:", err)
-      alert("Failed to generate tests.")
+      toast("Failed to generate tests.")
     } finally {
       setIsGenerating(false)
+       setIsSaving(false)
     }
   }
 
@@ -103,8 +106,8 @@ const [isSaveDone, setIsSaveDone] = useState(false)
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
 
   const handleSaveTest = async () => {
-    if (!mentorId) return alert("Mentor ID not found.")
-    if (!generatedTest) return alert("No test to save.")
+    if (!mentorId) return toast("Mentor ID not found.")
+    if (!generatedTest) return toast("No test to save.")
 
     const testTypeRaw = searchParams.get("type")?.toUpperCase()
     const isAptitude = testTypeRaw === "APPTITUDE"
@@ -415,7 +418,7 @@ const [isSaveDone, setIsSaveDone] = useState(false)
 
         {/* Footer */}
         <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Your Company Name. All rights reserved.
+          © {new Date().getFullYear()} Tekworks. All rights reserved.
         </footer>
       </SidebarInset>
     </SidebarProvider>
