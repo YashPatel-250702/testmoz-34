@@ -11,7 +11,7 @@ interface Question {
   id: string | number;
   question: string;
   options: string[];
-  answer: string; // correct answer
+  answer: string;
 }
 
 interface TestData {
@@ -27,29 +27,62 @@ interface CandidateInfo {
   mobile: string;
 }
 
+interface codingQuestion {
+  id: string | number;
+  problemStatement: string;
+  sampleInput: string[];
+  sampleOutput: string[];
+  constraints: string;
+}
+
+interface TechnicalTestData {
+  name: string;
+  description: string;
+  duration: number;
+  noOfQuestions: number;
+  technicalQuestions: codingQuestion[];
+}
+
+interface TestResult {
+  passed: number;
+  total: number;
+}
+
 export default function TestStartPage() {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const router = useRouter();
 
   const [testData, setTestData] = useState<TestData | null>(null);
+  const [codingTestData, setCodingTestData] = useState<TechnicalTestData | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string | number, string>>({});
   const [timeLeft, setTimeLeft] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [code, setCode] = useState('');
+  const [language, setLanguage] = useState("python");
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [generatedOutput, setGeneratedOutput] = useState<string | null>(null);
+
 
   useEffect(() => {
     const fetchTestData = async () => {
       try {
         const res = await axios.get(`/api/mentor/test/${id}/manageTests`);
         const test = res.data?.test;
-
-        if (!test || !Array.isArray(test.questions)) {
+        console.log(test);
+        if (!test) {
           console.error("Invalid test structure:", res.data);
           return;
         }
 
-        setTestData(test);
+        if (Array.isArray(test.questions)) {
+          setTestData(test);
+        }
+        else if (Array.isArray(test.technicalQuestions)) {
+          setCodingTestData(test);
+        }
+
         setTimeLeft(test.duration * 60);
       } catch (error) {
         console.error("Error fetching test data:", error);
@@ -61,9 +94,15 @@ export default function TestStartPage() {
     if (id) fetchTestData();
   }, [id]);
 
+  const handleTestSubmit = () => {
+    if (testData?.questions?.length) {
+      handleSubmit();
+    }
+  }
+
   useEffect(() => {
     if (timeLeft <= 0) {
-      handleSubmit(); // auto submit when time runs out
+      handleTestSubmit();
     }
     const timer = setInterval(() => {
       setTimeLeft((prev) => prev - 1);
@@ -94,7 +133,6 @@ export default function TestStartPage() {
       return;
     }
 
-    // ✅ Step 1: Calculate Score
     let score = 0;
     for (const question of testData.questions) {
       const userAnswer = answers[question.id];
@@ -103,12 +141,10 @@ export default function TestStartPage() {
       }
     }
 
-    // ✅ Step 2: Determine status
     const totalQuestions = testData.questions.length;
     const percentage = (score / totalQuestions) * 100;
     const status = percentage >= 70 ? "PASSED" : "FAILED";
 
-    // ✅ Step 3: Submit result
     try {
       await axios.post(`/api/mentor/test/${id}/submitTest`, {
         userEmail: candidateData.email,
@@ -126,57 +162,253 @@ export default function TestStartPage() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading test...</div>;
-  if (!testData || !Array.isArray(testData.questions) || testData.questions.length === 0)
-    return <div className="p-10 text-center">No test data found.</div>;
+  const handleRunCode = async () => {
+    if (!codingTestData) return
+    const question = codingTestData.technicalQuestions[currentQuestionIndex];
+    if (!question) return;
 
-  const question = testData.questions[currentQuestionIndex];
+    try {
+      const res = await fetch("/api/compile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          language,
+          testCases: question.sampleInput || []
+        }),
+      });
+
+      const data = await res.json();
+      console.log(data);
+
+      if (data.error) {
+        setGeneratedOutput(data.error);
+
+        setTestResult({
+          passed: 0,
+          total: question.sampleInput.length,
+        });
+      } else if (Array.isArray(data.results)) {
+        const outputs: string[] = data.results || [];
+
+        let firstOutput = outputs[0] || "";
+        try {
+          const parsed = JSON.parse(firstOutput.replace(/'/g, '"'));
+          firstOutput = Array.isArray(parsed) ? JSON.stringify(parsed) : String(parsed);
+        } catch {
+          firstOutput = firstOutput.trim();
+        }
+        setGeneratedOutput(firstOutput);
+
+        const passedCount = outputs.filter((out: string, idx: number) => {
+          const expected = question.sampleOutput[idx]?.trim();
+          let actual = out.trim();
+
+          try {
+            const parsedActual = JSON.parse(actual.replace(/'/g, '"'));
+            const parsedExpected = JSON.parse(expected.replace(/'/g, '"'));
+            return JSON.stringify(parsedActual) === JSON.stringify(parsedExpected);
+          } catch {
+            return actual === expected;
+          }
+        }).length;
+
+        setTestResult({
+          passed: passedCount,
+          total: question.sampleInput.length,
+        });
+      } else {
+        setGeneratedOutput("Unexpected response format from server.");
+      }
+
+    } catch (error) {
+      console.error("Error running code:", error);
+    }
+  };
+
+  const handleSubmitCode = () => {
+
+  };
+
+  const handleNextQuestion = () => {
+    if (!codingTestData) return;
+    if (currentQuestionIndex < codingTestData.technicalQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setCode("");
+      setGeneratedOutput(null);
+      setTestResult(null);
+    }
+  };
+
+  if (loading) return <div className="p-10 text-center">Loading test...</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">{testData.name}</h1>
-        <div className="text-red-600 font-bold">
-          Time Left: {Math.floor(timeLeft / 60)}:{("0" + (timeLeft % 60)).slice(-2)}
-        </div>
-      </div>
 
-      <div className="border p-4 rounded shadow">
-        <h2 className="text-xl font-semibold mb-3">
-          Question {currentQuestionIndex + 1} of {testData.questions.length}
-        </h2>
-        <p className="mb-4 whitespace-pre-line">{question.question}</p>
+      {testData?.questions?.length && (
+        <>
 
-        <div className="space-y-2">
-          {question.options?.map((opt, index) => (
-            <label
-              key={index}
-              className={`block p-2 border rounded cursor-pointer ${
-                answers[question.id] === opt ? "bg-blue-100 border-blue-500" : ""
-              }`}
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold">{testData.name}</h1>
+            <div className="text-red-600 font-bold">
+              Time Left: {Math.floor(timeLeft / 60)}:{("0" + (timeLeft % 60)).slice(-2)}
+            </div>
+          </div>
+
+          <div className="border p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-3">
+              Question {currentQuestionIndex + 1} of {testData.questions.length}
+            </h2>
+            <p className="mb-4 whitespace-pre-line">{testData.questions[currentQuestionIndex].question}</p>
+
+            <div className="space-y-2">
+              {testData.questions[currentQuestionIndex].options?.map((opt, index) => (
+                <label
+                  key={index}
+                  className={`block p-2 border rounded cursor-pointer ${answers[testData.questions[currentQuestionIndex].id] === opt ? "bg-blue-100 border-blue-500" : ""
+                    }`}
+                >
+                  <input
+                    type="radio"
+                    name={`q-${testData.questions[currentQuestionIndex].id}`}
+                    value={opt}
+                    checked={answers[testData.questions[currentQuestionIndex].id] === opt}
+                    onChange={() => handleOptionSelect(testData.questions[currentQuestionIndex].id, opt)}
+                    className="mr-2"
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={handleNext}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
             >
-              <input
-                type="radio"
-                name={`q-${question.id}`}
-                value={opt}
-                checked={answers[question.id] === opt}
-                onChange={() => handleOptionSelect(question.id, opt)}
-                className="mr-2"
-              />
-              {opt}
-            </label>
-          ))}
-        </div>
-      </div>
+              {currentQuestionIndex < testData.questions.length - 1 ? "Next" : "Submit"}
+            </button>
+          </div>
 
-      <div className="flex justify-end">
-        <button
-          onClick={handleNext}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
-        >
-          {currentQuestionIndex < testData.questions.length - 1 ? "Next" : "Submit"}
-        </button>
-      </div>
+        </>
+      )}
+
+      {codingTestData?.technicalQuestions?.length && (
+        <>
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-bold">{codingTestData.name}</h1>
+          </div>
+
+          <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
+            {(() => {
+              const question =
+                codingTestData.technicalQuestions[currentQuestionIndex];
+              if (!question) return null;
+
+              return (
+                <div key={question.id}>
+                  <h3>Question {currentQuestionIndex + 1}</h3>
+                  <p>
+                    <strong>Problem Statement:</strong> {question.problemStatement}
+                  </p>
+                  <p>
+                    <strong>Constraints:</strong> {question.constraints}
+                  </p>
+
+                  {question.sampleInput && question.sampleOutput && (
+                    <div style={{ marginTop: "10px", marginBottom: "10px" }}>
+                      <p>
+                        <strong>Sample Input:</strong> {question.sampleInput[0]}
+                      </p>
+                      <p>
+                        <strong>Sample Output:</strong> {question.sampleOutput[0]}
+                      </p>
+                    </div>
+                  )}
+
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="border p-2 rounded-md mt-2"
+                  >
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                  </select>
+
+                  <textarea
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    placeholder="Write your code here..."
+                    style={{
+                      width: "100%",
+                      height: "200px",
+                      marginTop: "10px",
+                    }}
+                  />
+
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={handleRunCode}
+                      className="px-4 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white"
+                    >
+                      Run Code
+                    </button>
+
+                    <button
+                      onClick={handleSubmitCode}
+                      className="px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white"
+                    >
+                      Submit Code
+                    </button>
+
+                    <button
+                      onClick={handleNextQuestion}
+                      disabled={
+                        currentQuestionIndex ===
+                        codingTestData.technicalQuestions.length - 1
+                      }
+                      className={`px-4 py-2 rounded-md text-white transition-colors duration-300 
+                ${currentQuestionIndex ===
+                          codingTestData.technicalQuestions.length - 1
+                          ? "bg-indigo-500 opacity-60 cursor-not-allowed"
+                          : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
+                        }`}
+                    >
+                      Next Question
+                    </button>
+                  </div>
+
+                  {testResult && (
+                    <>
+                      <div style={{ marginTop: "10px", marginBottom: "10px" }}>
+                        <p>
+                          <strong>Sample Input:</strong> {question.sampleInput[0]}
+                        </p>
+                        <p>
+                          <strong>Sample Output:</strong> {question.sampleOutput[0]}
+                        </p>
+
+                        {generatedOutput !== null && (
+                          <p>
+                            <strong>Your Output:</strong> {generatedOutput}
+                          </p>
+                        )}
+                      </div>
+                      <div className="mt-3 text-green-600 font-bold">
+                        {testResult.passed} / {testResult.total} Test Cases Passed
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        </>
+
+      )}
+
+
     </div>
   );
 }
