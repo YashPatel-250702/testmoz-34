@@ -48,7 +48,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Footer */}
         <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Quiztopher. All rights reserved.
+          © {new Date().getFullYear()} Tekworks. All rights reserved.
         </footer>
       </SidebarInset>
     </SidebarProvider>

@@ -37,9 +37,10 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
       {/* Set side to "left" */}
       <SidebarHeader className="p-4">
         <Link href="/mentor/dashboard" className="flex items-center gap-2 text-lg font-semibold">
-          <BookOpen className="h-6 w-6" />
+          {/* <BookOpen className="h-6 w-6" /> */}
           
-          <span className="text-2xl font-bold text-blue-600 tracking-tight">Quiztopher</span>
+          <span className="text-2xl font-bold text-blue-600 tracking-tight"><img src="/image.png" alt="Tekworks Logo" className="h-8" />
+</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

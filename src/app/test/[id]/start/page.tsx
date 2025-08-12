@@ -6,6 +6,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 interface Question {
   id: string | number;
@@ -63,6 +64,11 @@ export default function TestStartPage() {
   const [language, setLanguage] = useState("python");
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [generatedOutput, setGeneratedOutput] = useState<string | null>(null);
+  const [questionIdArray, setQuestionIdArray] = useState<string[]>([]);
+  const [answerArray, setAnswerArray] = useState<string[]>([]);
+  const [passedTestCasesArray, setPassedTestCasesArray] = useState<string[]>([]);
+  const [confirmPopup, setConfirmPopup] = useState(false)
+  const [score, setScore] = useState(0);
 
 
   useEffect(() => {
@@ -98,6 +104,9 @@ export default function TestStartPage() {
     if (testData?.questions?.length) {
       handleSubmit();
     }
+    else {
+      handleSubmitCodingTest();
+    }
   }
 
   useEffect(() => {
@@ -112,6 +121,10 @@ export default function TestStartPage() {
 
   const handleOptionSelect = (questionId: string | number, selectedOption: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: selectedOption }));
+      const updatedId = [...questionIdArray, String(questionId)];
+      const updatedCode = [...answerArray, selectedOption];
+      setAnswerArray(updatedCode);
+      setQuestionIdArray(updatedId);
   };
 
   const handleNext = () => {
@@ -132,12 +145,12 @@ export default function TestStartPage() {
       router.push(`/test/${id}`);
       return;
     }
-
     let score = 0;
     for (const question of testData.questions) {
       const userAnswer = answers[question.id];
       if (userAnswer && userAnswer === question.answer) {
-        score += 1;
+       score = score+1;
+
       }
     }
 
@@ -150,11 +163,14 @@ export default function TestStartPage() {
         userEmail: candidateData.email,
         userMobile: candidateData.mobile,
         userName: candidateData.name,
-        score,
+        score: percentage,
         status,
+        testId: id,
+        question_ids: questionIdArray,
+        answers: answerArray
       });
 
-      alert(`Test submitted successfully! You scored ${score}/${totalQuestions} (${status})`);
+      toast(`Test submitted successfully! You scored ${percentage}/${totalQuestions} (${status})`);
       router.push("/thank-you");
     } catch (error) {
       console.error("Error submitting result:", error);
@@ -227,8 +243,53 @@ export default function TestStartPage() {
   };
 
   const handleSubmitCode = () => {
-
+    setConfirmPopup(false)
+    if (codingTestData?.technicalQuestions?.length) {
+      const question = codingTestData.technicalQuestions[currentQuestionIndex];
+      const updatedId = [...questionIdArray, String(question.id)];
+      const updatedCode = [...answerArray, code];
+      if (testResult) {
+        const updatePassedTestCasesCount = [...passedTestCasesArray, `${testResult.passed} / ${testResult.total}`]
+        setPassedTestCasesArray(updatePassedTestCasesCount);
+        setScore(score + ((testResult.passed/testResult.total) * 100));
+      }
+      setQuestionIdArray(updatedId);
+      setAnswerArray(updatedCode)
+    }
   };
+
+  const handleSubmitCodingTest = async() => {
+    console.log("submitting")
+    if(!codingTestData) return
+
+    const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
+    if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
+      toast("Candidate info missing. Please re-enter the test.");
+      router.push(`/test/${id}`);
+      return;
+    }
+    const finalScore = score / codingTestData.noOfQuestions;
+    const status = finalScore >= 70 ? "PASSED" : "FAILED";
+try {
+      await axios.post(`/api/mentor/test/${id}/submitTest`, {
+        userEmail: candidateData.email,
+        userMobile: candidateData.mobile,
+        userName: candidateData.name,
+        score: finalScore,
+        status,
+        testId: id,
+        question_ids: questionIdArray,
+        answers: answerArray,
+        test_cases_passed: passedTestCasesArray
+      });
+      toast(`Test submitted successfully! You scored ${finalScore}/ (${status})`);
+      router.push("/thank-you");
+    } catch (error) {
+      console.error("Error submitting result:", error);
+      alert("Failed to submit result. Please try again.");
+    }
+
+  }
 
   const handleNextQuestion = () => {
     if (!codingTestData) return;
@@ -237,6 +298,9 @@ export default function TestStartPage() {
       setCode("");
       setGeneratedOutput(null);
       setTestResult(null);
+    }
+    else {
+      handleSubmitCodingTest();
     }
   };
 
@@ -296,8 +360,12 @@ export default function TestStartPage() {
 
       {codingTestData?.technicalQuestions?.length && (
         <>
+
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">{codingTestData.name}</h1>
+             <div className="text-red-600 font-bold">
+              Time Left: {Math.floor(timeLeft / 60)}:{("0" + (timeLeft % 60)).slice(-2)}
+            </div>
           </div>
 
           <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
@@ -308,7 +376,7 @@ export default function TestStartPage() {
 
               return (
                 <div key={question.id}>
-                  <h3>Question {currentQuestionIndex + 1}</h3>
+                  <h3>Question {currentQuestionIndex + 1} / {codingTestData.noOfQuestions}</h3>
                   <p>
                     <strong>Problem Statement:</strong> {question.problemStatement}
                   </p>
@@ -356,7 +424,7 @@ export default function TestStartPage() {
                     </button>
 
                     <button
-                      onClick={handleSubmitCode}
+                      onClick={() => setConfirmPopup(true)}
                       className="px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white"
                     >
                       Submit Code
@@ -364,18 +432,9 @@ export default function TestStartPage() {
 
                     <button
                       onClick={handleNextQuestion}
-                      disabled={
-                        currentQuestionIndex ===
-                        codingTestData.technicalQuestions.length - 1
-                      }
-                      className={`px-4 py-2 rounded-md text-white transition-colors duration-300 
-                ${currentQuestionIndex ===
-                          codingTestData.technicalQuestions.length - 1
-                          ? "bg-indigo-500 opacity-60 cursor-not-allowed"
-                          : "bg-indigo-600 hover:bg-indigo-700 cursor-pointer"
-                        }`}
+                      className={`px-4 py-2 rounded-md text-white transition-colors duration-300 bg-indigo-600 hover:bg-indigo-700 cursor-pointer`}
                     >
-                      Next Question
+                      {currentQuestionIndex < codingTestData.technicalQuestions.length - 1 ? "Next" : "Submit"}
                     </button>
                   </div>
 
@@ -406,6 +465,32 @@ export default function TestStartPage() {
           </div>
         </>
 
+      )}
+
+      {confirmPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 text-center">
+            <h2 className="text-lg font-semibold mb-4">Confirm Submission</h2>
+            <p className="mb-6 text-gray-700">
+              Are you sure you want to submit your code? <br />
+              <span className="font-semibold text-red-500">This action cannot be undone.</span>
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setConfirmPopup(false)}
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitCode}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
+              >
+                Proceed
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
 

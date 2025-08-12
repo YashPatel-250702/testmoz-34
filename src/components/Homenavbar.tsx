@@ -12,7 +12,7 @@ const Homenavbar = () => {
 
   return (
     <header className="w-full border-b bg-white px-6 py-4 flex items-center justify-between">
-      <h1 className="text-xl font-bold text-primary">Quiztopher</h1>
+<img src="/image.png" alt="Tekworks Logo" className="h-8" />
       <nav className="flex gap-4">
         <Link href="/" passHref>
           <Button variant={isActive('/') ? 'default' : 'outline'}>
