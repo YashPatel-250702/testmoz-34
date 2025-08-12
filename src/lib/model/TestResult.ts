@@ -12,6 +12,7 @@ export interface TestResults {
   updatedAt: Date;
   question_ids: string[];
   answers: string[];
+  isCorrect: boolean[];
 
   testId: string;
 }
