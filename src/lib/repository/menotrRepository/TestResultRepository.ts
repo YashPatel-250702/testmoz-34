@@ -1,7 +1,7 @@
 import { TechnicalTestResults, TestResults } from "@/lib/model/TestResult";
 import prisma from "@/lib/shared/Common/PrismaClient";
 
-export async function submitTestResult(testResult:TestResults){
+export async function submitTestResult(testResult:any){
     console.log("Submitting test result...");
     const result=await prisma.testResults.create({data:testResult})
     return result

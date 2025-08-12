@@ -30,4 +30,5 @@ export const TestResultsSchema = z.object({
 
   question_ids: z.array(z.string()).min(1, "Question IDs are required"),
   answers: z.array(z.string()).min(1, "Answers are required"),
+  isCorrect: z.array(z.string()).min(1, "Correct answers are required").optional(),
 });
