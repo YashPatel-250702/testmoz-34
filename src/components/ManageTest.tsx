@@ -64,8 +64,8 @@ export default function ManageTestsPage() {
     try {
       const response = await axios.delete(`/api/mentor/test/${id}/manageTests`)
       if (response.status === 200) {
-        toast.success("Test deleted successfully")
         fetchTests()
+        toast.success("Test deleted successfully")
       }
     } catch (error) {
       toast.error("Error deleting test")
