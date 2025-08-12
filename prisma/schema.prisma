@@ -99,7 +99,7 @@ model TestResults {
   testId       String
   answers      String[]
   question_ids String[]
-  isCorrect    Boolean[]
+  isCorrect    String[]
   test         Test             @relation(fields: [testId], references: [id])
 }
 
