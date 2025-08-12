@@ -17,6 +17,9 @@ interface ResultItem {
   score: number
   status: "PASSED" | "FAILED"
   createdAt: string
+  question_ids: string[]
+  test_cases_passed: string[]
+  isCorrect: string[]
 }
 
 export default function ViewResultsPage() {
@@ -45,6 +48,12 @@ export default function ViewResultsPage() {
     r.userEmail.toLowerCase().includes(search.toLowerCase())
   )
 
+  const allQuestions = Array.from(
+    new Set(
+      results.flatMap(r => r.question_ids)
+    )
+  );
+
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
       <Card>
@@ -71,15 +80,18 @@ export default function ViewResultsPage() {
             <p className="text-gray-500 text-center py-8">No results found.</p>
           ) : (
             <div className="overflow-x-auto rounded-md border">
-              <Table>
+              <Table className="min-w-max">
                 <TableHeader>
-                  <TableRow className="bg-gray-100">
+                  <TableRow className="bg-gray-100 whitespace-nowrap">
                     <TableHead>#</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Mobile</TableHead>
                     <TableHead>Score</TableHead>
                     <TableHead>Status</TableHead>
+                    {allQuestions.map((qId, idx) => (
+                      <TableHead key={qId}>Q{idx + 1}</TableHead>
+                    ))}
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -96,6 +108,29 @@ export default function ViewResultsPage() {
                           {r.status}
                         </Badge>
                       </TableCell>
+                      {allQuestions.map(qId => {
+                        const qIndex = r.question_ids.indexOf(qId);
+                        let cellValue = "-";
+
+                        if (qIndex !== -1) {
+                          const testCaseValue = r.test_cases_passed?.[qIndex];
+                          const correctnessValue = r.isCorrect?.[qIndex];
+                          cellValue = testCaseValue != null && testCaseValue !== ""
+                            ? testCaseValue
+                            : correctnessValue === "C"
+                              ? "✔️"
+                              : correctnessValue === "IC"
+                                ? "❌"
+                                : "-";
+                        }
+
+                        return (
+                          <TableCell key={qId}>
+                            {cellValue}
+                          </TableCell>
+                        );
+                      })}
+
                       <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>
                     </TableRow>
                   ))}
