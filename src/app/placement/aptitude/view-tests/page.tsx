@@ -24,8 +24,14 @@ export default function AptitudeViewTestsPage() {
           setActiveTests(response.data.activeTests)
         }
       } catch (error) {
-        console.error("Error fetching tests:", error)
-        alert("Error fetching tests. Please try again later.")
+       console.error("Error fetching tests:", error)
+      if (axios.isAxiosError(error)) {
+         if (error.response?.status === 404) {
+            setActiveTests([]);
+         } else {
+           toast.error("Error fetching tests. Please try again later.")
+         }
+      }
       } finally {
         setLoading(false)
       }
@@ -64,7 +70,7 @@ export default function AptitudeViewTestsPage() {
           <Loader2 className="animate-spin w-10 h-10 text-blue-600" />
         </div>
       ) : activeTests?.length === 0 ? (
-        <p className="text-center text-gray-600">No active college tests available.</p>
+        <p className="text-center text-gray-600">No active aptitude tests available.</p>
       ) : (
         activeTests?.map((test) => (
           <Card key={test.id} className="hover:shadow-lg transition-shadow">

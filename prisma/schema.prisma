@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
@@ -12,6 +6,101 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Mentor {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  mobile    String?  @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Test      Test[]
+}
+
+model Test {
+  id                   String                   @id @default(cuid())
+  name                 String?
+  description          String?
+  type                 TestType?
+  status               TestStatus?
+  duration             Int?
+  noOfQuestions        Int?
+  noOfAttempts         Int?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  mentorId             String
+  publicLink           String?
+  conceptsCovered      String[]
+  technicalQuestions   TechnicalTestQuestions[]
+  TechnicalTestResults TechnicalTestResults[]
+  mentor               Mentor                   @relation(fields: [mentorId], references: [id])
+  questions            TestQuestions[]
+  attempts             TestResults[]
+}
+
+model TechnicalTestQuestions {
+  id               String    @id @default(uuid())
+  problemStatement String
+  constraints      String?
+  complexity       String?
+  type             TestType?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  testId           String
+  sampleInput      String[]
+  sampleOutput     String[]
+  test             Test      @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+}
+
+model TestQuestions {
+  id        String   @id @default(cuid())
+  question  String?
+  options   String[]
+  answer    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  testId    String
+  test      Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+}
+
+model TechnicalTestResults {
+  id                String           @id @default(cuid())
+  userEmail         String
+  userMobile        String?
+  userName          String?
+  question_ids      String[]
+  answers           String[]
+  test_cases_passed String[]
+  createdAt         DateTime         @default(now())
+  score             Int?
+  status            TesResultStatus?
+  updatedAt         DateTime         @updatedAt
+  testId            String
+  test              Test             @relation(fields: [testId], references: [id])
+
+  @@map("TechnicalTestResults")
+}
+
+model TestResults {
+  id           String           @id @default(cuid())
+  userEmail    String
+  userMobile   String?
+  userName     String?
+  score        Int?
+  status       TesResultStatus?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  testId       String
+  answers      String[]
+  question_ids String[]
+  isCorrect    String[]
+  test         Test             @relation(fields: [testId], references: [id])
 }
 
 enum TestType {
@@ -30,106 +119,8 @@ enum TestResultStatus {
   FAILED
 }
 
-model Mentor {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  mobile    String?  @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  Test Test[]
-}
-
-model Test {
-  id              String      @id @default(cuid())
-  name            String?
-  description     String?
-  conceptsCovered String[]
-  type            TestType?
-  status          TestStatus?
-  duration        Int?
-  noOfQuestions   Int?
-  noOfAttempts    Int?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  mentorId String
-  mentor         Mentor?      @relation(fields: [mentorId], references: [id])
-  publicLink      String?
-  questions       TestQuestions[] 
-  technicalQuestions      TechnicalTestQuestions[] 
-  attempts  TestResults[]
-  TechnicalTestResults TechnicalTestResults[]
-}
-
-model TechnicalTestQuestions{
-  id            String   @id @default(uuid())
-  problemStatement  String
-  sampleInput   String[]
-  sampleOutput  String[]
-  constraints   String?
-  complexity    String?
-  type         TestType?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  testId String
-  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
-
-  @@index([testId])
-}
-
-
-model TestQuestions {
-  id        String   @id @default(cuid())
-  question  String?
-  options   String[]
-  answer    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  testId String
-  test   Test   @relation(fields: [testId], references: [id], onDelete: Cascade)
-
-  @@index([testId])
-}
-model TechnicalTestResults {
-  id        String   @id @default(cuid())
-  userEmail         String
-  userMobile        String?
-  userName          String?
-  question_ids      String[]         
-  answers           String[]         
-  test_cases_passed String[]        
-  createdAt         DateTime         @default(now())
-  score             Int?
-  status            TesResultStatus?
-  updatedAt         DateTime  @updatedAt
-  testId            String
-  test   Test   @relation(fields: [testId], references: [id])
-
-  @@map("TechnicalTestResults")
-}
-
 enum TesResultStatus {
   PASSED
   FAILED
   IN_PROGRESS
-}
-
-
-model TestResults {
-  id         String           @id @default(cuid())
-  userEmail  String
-  userMobile String?
-  userName   String?
-  score      Int?
-  status     TesResultStatus?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  question_ids      String[]         
-  answers           String[]
-
-  testId String
-  test   Test   @relation(fields: [testId], references: [id])
 }
