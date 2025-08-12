@@ -7,7 +7,7 @@ interface CompileInput {
 }
 
 export async function compileCode({ code, language, testCases }: CompileInput) {
-  if (language === "python") {
+  if (language.toLowerCase() === "python") {
     const results: string[] = [];
     for (const input of testCases) {
       try {
@@ -20,7 +20,7 @@ export async function compileCode({ code, language, testCases }: CompileInput) {
     return results;
   }
 
-  if (language === "java") {
+  if (language.toLowerCase() === "java") {
     const containerName = `java-run-${Date.now()}`;
     try {
       await compileJavaInDocker(containerName, code);

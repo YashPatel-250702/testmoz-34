@@ -69,6 +69,7 @@ export default function TestStartPage() {
   const [passedTestCasesArray, setPassedTestCasesArray] = useState<string[]>([]);
   const [confirmPopup, setConfirmPopup] = useState(false)
   const [score, setScore] = useState(0);
+  const [isCorrect, setIsCorrect] = useState<string[]>([])
 
 
   useEffect(() => {
@@ -121,10 +122,10 @@ export default function TestStartPage() {
 
   const handleOptionSelect = (questionId: string | number, selectedOption: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: selectedOption }));
-      const updatedId = [...questionIdArray, String(questionId)];
-      const updatedCode = [...answerArray, selectedOption];
-      setAnswerArray(updatedCode);
-      setQuestionIdArray(updatedId);
+    const updatedId = [...questionIdArray, String(questionId)];
+    const updatedCode = [...answerArray, selectedOption];
+    setAnswerArray(updatedCode);
+    setQuestionIdArray(updatedId);
   };
 
   const handleNext = () => {
@@ -146,13 +147,19 @@ export default function TestStartPage() {
       return;
     }
     let score = 0;
+    let correctnessArray: string[] = [];
     for (const question of testData.questions) {
       const userAnswer = answers[question.id];
       if (userAnswer && userAnswer === question.answer) {
-       score = score+1;
-
+        score = score + 1;
+        correctnessArray.push("C");
+      } else if (userAnswer && userAnswer !== question.answer) {
+        correctnessArray.push("IC");
+      } else {
+        correctnessArray.push("-");
       }
     }
+    setIsCorrect(correctnessArray);
 
     const totalQuestions = testData.questions.length;
     const percentage = (score / totalQuestions) * 100;
@@ -167,10 +174,11 @@ export default function TestStartPage() {
         status,
         testId: id,
         question_ids: questionIdArray,
-        answers: answerArray
+        answers: answerArray,
+        isCorrect
       });
 
-      toast(`Test submitted successfully! You scored ${percentage}/${totalQuestions} (${status})`);
+      toast(`Test submitted successfully! You scored ${percentage}/(${totalQuestions * 10}) (${status})`);
       router.push("/thank-you");
     } catch (error) {
       console.error("Error submitting result:", error);
@@ -249,18 +257,18 @@ export default function TestStartPage() {
       const updatedId = [...questionIdArray, String(question.id)];
       const updatedCode = [...answerArray, code];
       if (testResult) {
-        const updatePassedTestCasesCount = [...passedTestCasesArray, `${testResult.passed} / ${testResult.total}`]
+        const updatePassedTestCasesCount = [...passedTestCasesArray, testResult ? `${testResult.passed} / ${testResult.total}` : '-']
         setPassedTestCasesArray(updatePassedTestCasesCount);
-        setScore(score + ((testResult.passed/testResult.total) * 100));
+        setScore(score + ((testResult.passed / testResult.total) * 100));
       }
       setQuestionIdArray(updatedId);
       setAnswerArray(updatedCode)
     }
   };
 
-  const handleSubmitCodingTest = async() => {
+  const handleSubmitCodingTest = async () => {
     console.log("submitting")
-    if(!codingTestData) return
+    if (!codingTestData) return
 
     const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
     if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
@@ -268,9 +276,9 @@ export default function TestStartPage() {
       router.push(`/test/${id}`);
       return;
     }
-    const finalScore = score / codingTestData.noOfQuestions;
+    const finalScore = Math.round(score / codingTestData.noOfQuestions);
     const status = finalScore >= 70 ? "PASSED" : "FAILED";
-try {
+    try {
       await axios.post(`/api/mentor/test/${id}/submitTest`, {
         userEmail: candidateData.email,
         userMobile: candidateData.mobile,
@@ -363,7 +371,7 @@ try {
 
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">{codingTestData.name}</h1>
-             <div className="text-red-600 font-bold">
+            <div className="text-red-600 font-bold">
               Time Left: {Math.floor(timeLeft / 60)}:{("0" + (timeLeft % 60)).slice(-2)}
             </div>
           </div>
