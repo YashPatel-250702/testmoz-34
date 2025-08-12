@@ -35,7 +35,7 @@ model Test {
   conceptsCovered      String[]
   technicalQuestions   TechnicalTestQuestions[]
   TechnicalTestResults TechnicalTestResults[]
-  mentor               Mentor                   @relation(fields: [mentorId], references: [id])
+  mentor               Mentor                   @relation(fields: [mentorId], references: [id],onDelete: Cascade)
   questions            TestQuestions[]
   attempts             TestResults[]
 }
@@ -82,7 +82,7 @@ model TechnicalTestResults {
   status            TesResultStatus?
   updatedAt         DateTime         @updatedAt
   testId            String
-  test              Test             @relation(fields: [testId], references: [id])
+  test              Test             @relation(fields: [testId], references: [id],onDelete: Cascade)
 
   @@map("TechnicalTestResults")
 }
@@ -100,7 +100,7 @@ model TestResults {
   answers      String[]
   question_ids String[]
   isCorrect    String[]
-  test         Test             @relation(fields: [testId], references: [id])
+  test         Test             @relation(fields: [testId], references: [id],onDelete: Cascade)
 }
 
 enum TestType {
