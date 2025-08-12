@@ -28,6 +28,7 @@ export async function getCondingTestsByID(id:string){
 
 
 export async function updateTestData(id: string, testData: any) {
+    const questionCount = Array.isArray(testData.questions) ? testData.questions.length : 0;
   const updatedTest = await prisma.test.update({
     where: { id },
     data: {
@@ -37,7 +38,7 @@ export async function updateTestData(id: string, testData: any) {
       type: testData.test.type,
       status: 'ACTIVE',
       duration: testData.test.durationMinutes,
-      noOfQuestions: testData.test.numberOfQuestions,
+      noOfQuestions: questionCount,
       noOfAttempts: 0,
 
       questions: {

@@ -132,7 +132,7 @@ export default function DashboardLandingPage() {
 
         {/* Footer */}
         <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Your Company Name. All rights reserved.
+          © {new Date().getFullYear()} Tekworks. All rights reserved.
         </footer>
       </SidebarInset>
     </SidebarProvider>
