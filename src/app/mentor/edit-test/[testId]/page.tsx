@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { toast } from "react-toastify"
 import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
 
 export default function EditTestPage() {
   const { testId } = useParams()
@@ -160,7 +161,9 @@ export default function EditTestPage() {
     }
   }
 
-  if (loading) return <p>Loading test details...</p>
+  if (loading) return  <div className="flex justify-center items-center h-[60vh]">
+          <Loader2 className="animate-spin w-10 h-10 text-blue-600" />
+        </div>
   if (error) return <p style={{ color: "red" }}>{error}</p>
   if (!testData) return <p>Test not found.</p>
 

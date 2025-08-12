@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "react-toastify"
+import { Loader2 } from "lucide-react"
 
 interface TestItem {
   id: string
@@ -84,8 +85,9 @@ export default function ManageTestsPage() {
       </div>
 
       {loading ? (
-        <p>Loading tests...</p>
-      ) : tests.length === 0 ? (
+ <div className="flex justify-center items-center h-[60vh]">
+          <Loader2 className="animate-spin w-10 h-10 text-blue-600" />
+        </div>      ) : tests.length === 0 ? (
         <p>No tests found.</p>
       ) : (
         <div className="grid gap-6">

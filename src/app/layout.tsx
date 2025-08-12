@@ -5,7 +5,7 @@ import ClientLayout from "../components/ClientLayout";
 import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
-  title: "Quiztopher",
+  title: "Tekworks",
   description: "Assessment platform for students and placement drives",
 };
 
