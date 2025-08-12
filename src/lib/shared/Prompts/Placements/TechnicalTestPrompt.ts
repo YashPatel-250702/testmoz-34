@@ -62,6 +62,13 @@ Only return valid **pure JSON** in the following format:
 - Do NOT return markdown or explanation — only valid JSON.
 - Focus on code logic, inputs, outputs, and real-world problem solving.
 - Avoid repetitive or trivial problems.
+- You must return only valid JSON. 
+ -Follow this schema exactly: { ... }
+- Do not use tuples, use arrays.
+- No line breaks inside strings.
+- No trailing commas.
+- No text outside the JSON.
+- You should return proper json object because i am parsing that object so it should not throw any error at that time.
 `;
 
   return prompt;
