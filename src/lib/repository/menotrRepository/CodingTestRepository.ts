@@ -37,6 +37,7 @@ export async function saveCodingTestRepo(menotrId:string, codingTest:GeneratedTe
 }
 
 export async function updateCodingTestRepo(testId: string, testData: GeneratedTestRequest) {
+  const questionCount = Array.isArray(testData.questions) ? testData.questions.length : 0;
   const result = await prisma.test.update({
     where: {
       id: testId,
@@ -45,7 +46,7 @@ export async function updateCodingTestRepo(testId: string, testData: GeneratedTe
       name: testData.title,
       description: testData.description,
       duration: testData.durationMinutes,
-      noOfQuestions: testData.numberOfQuestions,
+      noOfQuestions:questionCount,
       technicalQuestions: {
         // Delete existing technical questions
         deleteMany: {},
