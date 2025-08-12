@@ -31,7 +31,13 @@ export default function CollegeViewTestsPage() {
       }
     } catch (error) {
       console.error("Error fetching tests:", error)
-      alert("Error fetching tests. Please try again later.")
+      if (axios.isAxiosError(error)) {
+         if (error.response?.status === 404) {
+            setActiveTests([]);
+         } else {
+           toast.error("Error fetching tests. Please try again later.")
+         }
+      }
     } finally {
       setLoading(false)
     }
