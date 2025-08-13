@@ -47,11 +47,12 @@ Only return valid **pure JSON** in the following format:
   "questions": [
     {
       "problemStatement": "Your coding question here...",
-      "sampleInput": ["3 Sample inputs string[] here..."],
-      "sampleOutput": ["3 Expected outputs string[] here respected to inputs..."],
+      "sampleInput": ["3 Sample inputs string[] here... strictly give in string format"],
+      "sampleOutput": ["3 Expected outputs string[] here respected to inputs... strictly give in string format"],
       "constraints": "Any specific constraints",
       "complexity": "${body.complexity}"
     }
+    
     // repeat for all questions
   ]
 }
