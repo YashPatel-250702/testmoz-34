@@ -73,61 +73,55 @@ export default function DashboardLandingPage() {
           </div>
 
           {/* Activities + Quick Actions */}
-          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-            {/* <Card className="xl:col-span-2">
-              <CardHeader className="flex flex-row items-center">
-                <div className="grid gap-2">
-                  <CardTitle>Recent Activities</CardTitle>
-                  <CardDescription>Overview of latest test creations and student attempts.</CardDescription>
-                </div>
-                <Button size="sm" className="ml-auto gap-1">
-                  <Link href="/mentor/manage-tests">View All</Link>
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">Java Basics Test Created</p>
-                      <p className="text-xs text-muted-foreground">By Mentor John Doe</p>
-                    </div>
-                    <span className="text-sm">2 hours ago</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">Student Alice completed Aptitude Test</p>
-                      <p className="text-xs text-muted-foreground">Score: 85%</p>
-                    </div>
-                    <span className="text-sm">1 day ago</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">New Technical Test Drafted</p>
-                      <p className="text-xs text-muted-foreground">By Placement Team</p>
-                    </div>
-                    <span className="text-sm">3 days ago</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card> */}
+          <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-2">
+      {/* Row with 4 cards */}
+  
+  {/* Performance */}
+  <Card className="hover:shadow-lg transition-shadow">
+    <CardHeader>
+      <CardTitle>📊 Performance</CardTitle>
+      <CardDescription>Avg. score: 72%</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="h-16 flex items-center justify-center">
+        <span className="text-2xl font-semibold text-orange-500">72%</span>
+      </div>
+    </CardContent>
+  </Card>
 
-            {/* <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <Button className="w-full">
-                  <Link href="/mentor/create-test?type=general">Create New Test</Link>
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <Link href="/mentor/manage-tests">Manage Existing Tests</Link>
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <Link href="/reports">View Reports</Link>
-                </Button>
-              </CardContent>
-            </Card> */}
-          </div>
+  {/* Active Tests */}
+  <Card className="hover:shadow-lg transition-shadow">
+    <CardHeader>
+      <CardTitle>📝 Active Tests</CardTitle>
+      <CardDescription>Aptitude Test — In progress</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p className="text-sm">45 of 120 completed</p>
+    </CardContent>
+  </Card>
+
+  {/* Recent Activity */}
+  <Card className="hover:shadow-lg transition-shadow">
+    <CardHeader>
+      <CardTitle>🆕 Recent Activity</CardTitle>
+      <CardDescription>3 tests created this week</CardDescription>
+    </CardHeader>
+  </Card>
+
+  {/* NEW Card — Example: Upcoming Tests */}
+  <Card className="hover:shadow-lg transition-shadow">
+    <CardHeader>
+      <CardTitle>📅 Upcoming Tests</CardTitle>
+      <CardDescription>Weekly Test — Aug 18</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <p className="text-sm">46 students</p>
+    </CardContent>
+  </Card>
+
+
+</div>
+           
         </main>
 
         {/* Footer */}
