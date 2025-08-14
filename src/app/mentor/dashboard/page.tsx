@@ -47,7 +47,7 @@ export default function DashboardLandingPage() {
         {/* Main Dashboard Content */}
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 bg-muted/20">
 
-          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
             <Card className="hover:shadow-lg transition-shadow col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">🎓 College Tests</CardTitle>
@@ -59,7 +59,7 @@ export default function DashboardLandingPage() {
                 </Link>
               </CardContent>
             </Card>
-            <Card className="hover:shadow-lg transition-shadow col-span-3">
+            <Card className="hover:shadow-lg transition-shadow col-span-2">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">💼 Placement Tests</CardTitle>
                 <CardDescription>Manage and access tests for placement drives.</CardDescription>

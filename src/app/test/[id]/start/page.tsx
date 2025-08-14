@@ -122,14 +122,16 @@ export default function TestStartPage() {
 
   const handleOptionSelect = (questionId: string | number, selectedOption: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: selectedOption }));
-    const updatedId = [...questionIdArray, String(questionId)];
+   
     const updatedCode = [...answerArray, selectedOption];
     setAnswerArray(updatedCode);
-    setQuestionIdArray(updatedId);
+   
   };
 
-  const handleNext = () => {
+  const handleNext = (questionId: string | number) => {
     if (!testData) return;
+     const updatedId = [...questionIdArray, String(questionId)];
+      setQuestionIdArray(updatedId);
     if (currentQuestionIndex < testData.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
@@ -356,7 +358,7 @@ export default function TestStartPage() {
 
           <div className="flex justify-end">
             <button
-              onClick={handleNext}
+              onClick={() =>handleNext(testData.questions[currentQuestionIndex].id)}
               className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
             >
               {currentQuestionIndex < testData.questions.length - 1 ? "Next" : "Submit"}

@@ -48,11 +48,7 @@ export default function ViewResultsPage() {
     r.userEmail.toLowerCase().includes(search.toLowerCase())
   )
 
-  const allQuestions = Array.from(
-    new Set(
-      results.flatMap(r => r.question_ids)
-    )
-  );
+const allQuestions = results[0]?.question_ids || [];
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
