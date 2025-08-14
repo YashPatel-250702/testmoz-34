@@ -1,48 +1,60 @@
+// app/api/compile/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { runCode } from "@/lib/utils/codeCompiler";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
-// In-memory concurrency tracker
-let activeExecutions = 0;
-const MAX_CONCURRENT = 200;
+const lambda = new LambdaClient({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
 
 export async function POST(req: NextRequest) {
   try {
-    if (activeExecutions >= MAX_CONCURRENT) {
+    const body = await req.json();
+    const { language, code, stdin, count } = body;
+
+    if (!language || !code) {
       return NextResponse.json(
-        { error: "Server is busy, please try again shortly." },
-        { status: 429 }
+        { error: "language and code are required" },
+        { status: 400 }
       );
     }
 
-    activeExecutions++;
-    const { code, language, input } = await req.json();
+    const invocations = Array.from({ length: count || 1 }).map(() => {
+      const payload = {
+        language,
+        code,
+        stdin: stdin || "",
+      };
 
-    if (!code || !language) {
-      activeExecutions--;
-      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-    }
+      const cmd = new InvokeCommand({
+        FunctionName: process.env.LAMBDA_FUNCTION_NAME!,
+        Payload: Buffer.from(JSON.stringify(payload)),
+        InvocationType: "RequestResponse",
+      });
 
-    const start = Date.now();
-    const { output, error } = await runCode({
-      code,
-      language,
-      input,
-      timeout: 15000 
+      return lambda
+        .send(cmd)
+        .then((res) => {
+          const outStr = Buffer.from(res.Payload as Uint8Array).toString();
+          try {
+            return JSON.parse(outStr);
+          } catch {
+            return outStr;
+          }
+        })
+        .catch((err) => ({ error: err.message }));
     });
-    const duration = Date.now() - start;
 
-    activeExecutions--;
+    const results = await Promise.all(invocations);
 
-    return NextResponse.json({
-      language,
-      output,
-      error,
-      durationMs: duration
-    });
-  } catch (err) {
-    activeExecutions--;
+    return NextResponse.json({ count: results.length, results });
+  } catch (error: any) {
+    console.error("Error invoking Lambda:", error);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
+      { error: "Lambda invocation failed", details: error.message },
       { status: 500 }
     );
   }
