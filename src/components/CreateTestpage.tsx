@@ -128,10 +128,10 @@ const [isSaveDone, setIsSaveDone] = useState(false)
           type: testTypeRaw,
           questions: generatedTest.questions.map((q) => ({
             problemStatement: q.problemStatement,
-            sampleInput: q.sampleInput,
-            sampleOutput: q.sampleOutput,
-            constraints: q.constraints,
-            complexity: q.complexity,
+            sampleInput: [String(q.sampleInput)],
+            sampleOutput: [String(q.sampleOutput)],
+            constraints: String(q.constraints) || null, 
+            complexity: String(q.complexity) || null,
           })),
         }
       : {
@@ -311,18 +311,34 @@ const [isSaveDone, setIsSaveDone] = useState(false)
                     </div>
 
                     {/* Complexity */}
-                    <div className="space-y-2">
+                 <div className="space-y-2">
                       <Label htmlFor="complexity">Complexity Level</Label>
-                      <Select
-                        id="complexity"
-                        value={formData.complexity}
-                        onChange={(e) => setFormData({ ...formData, complexity: e.target.value })}
-                      >
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                        <option value="Mixed">Mixed</option>
-                      </Select>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={formData.complexity === "Easy" ? "default" : "outline"}
+                          onClick={() => setFormData({ ...formData, complexity: "Easy" })}
+                          className="flex-1"
+                        >
+                          Easy
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={formData.complexity === "Medium" ? "default" : "outline"}
+                          onClick={() => setFormData({ ...formData, complexity: "Medium" })}
+                          className="flex-1"
+                        >
+                          Medium
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={formData.complexity === "Hard" ? "default" : "outline"}
+                          onClick={() => setFormData({ ...formData, complexity: "Hard" })}
+                          className="flex-1"
+                        >
+                          Hard
+                        </Button>
+                      </div>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={isGenerating}>

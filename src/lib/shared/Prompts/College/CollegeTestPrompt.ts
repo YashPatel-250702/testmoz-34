@@ -45,8 +45,8 @@ Only return valid **pure JSON** in the following format:
   "questions": [
     {
       "problemStatement": "Your coding question here...",
-      "sampleInput": "Sample input string here...",
-      "sampleOutput": "Expected output here...",
+      "sampleInput": "Sample input string here... strictly in string format even though it is integer",
+      "sampleOutput": "Expected output here... strictly in string format even though it is integer",
       "constraints": "Any specific constraints",
       "complexity": "${body.complexity}"
     }
