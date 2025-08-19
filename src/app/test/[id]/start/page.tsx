@@ -186,131 +186,160 @@ export default function TestStartPage() {
     }
   };
 
-  const handleRunCode = async () => {
-    if (!codingTestData) return
-    const question = codingTestData.technicalQuestions[currentQuestionIndex];
-    if (!question) return;
+const handleRunCode = async () => {
+  if (!codingTestData) return;
+  const question = codingTestData.technicalQuestions[currentQuestionIndex];
+  if (!question) return;
 
-    try {
-      const res = await fetch("/api/compile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          language,
-          testCases: question.sampleInput || []
-        }),
+  try {
+    const res = await fetch("/api/compile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code,
+        language,
+        testCases: question.sampleInput || []
+      }),
+    });
+
+    const data = await res.json();
+    console.log(data)
+
+    if (data.error) {
+      setGeneratedOutput(data.error);
+      setTestResult({
+        passed: 0,
+        total: question.sampleInput.length,
       });
-
-      const data = await res.json();
-      console.log(data);
-
-      if (data.error) {
-        setGeneratedOutput(data.error);
-
-        setTestResult({
-          passed: 0,
-          total: question.sampleInput.length,
-        });
-      } else if (Array.isArray(data.results)) {
-        const outputs: string[] = data.results || [];
-
-        let firstOutput = outputs[0] || "";
-        try {
-          const parsed = JSON.parse(firstOutput.replace(/'/g, '"'));
-          firstOutput = Array.isArray(parsed) ? JSON.stringify(parsed) : String(parsed);
-        } catch {
-          firstOutput = firstOutput.trim();
-        }
-        setGeneratedOutput(firstOutput);
-
-        const passedCount = outputs.filter((out: string, idx: number) => {
-          const expected = question.sampleOutput[idx]?.trim();
-          let actual = out.trim();
-
-          try {
-            const parsedActual = JSON.parse(actual.replace(/'/g, '"'));
-            const parsedExpected = JSON.parse(expected.replace(/'/g, '"'));
-            return JSON.stringify(parsedActual) === JSON.stringify(parsedExpected);
-          } catch {
-            return actual === expected;
-          }
-        }).length;
-
-        setTestResult({
-          passed: passedCount,
-          total: question.sampleInput.length,
-        });
-      } else {
-        setGeneratedOutput("Unexpected response format from server.");
-      }
-
-    } catch (error) {
-      console.error("Error running code:", error);
-    }
-  };
-
-  const handleSubmitCode = () => {
-    setConfirmPopup(false)
-    if (codingTestData?.technicalQuestions?.length) {
-      const question = codingTestData.technicalQuestions[currentQuestionIndex];
-      const updatedId = [...questionIdArray, String(question.id)];
-      const updatedCode = [...answerArray, code];
-      if (testResult) {
-        const updatePassedTestCasesCount = [...passedTestCasesArray, testResult ? `${testResult.passed} / ${testResult.total}` : '-']
-        setPassedTestCasesArray(updatePassedTestCasesCount);
-        setScore(score + ((testResult.passed / testResult.total) * 100));
-      }
-      setQuestionIdArray(updatedId);
-      setAnswerArray(updatedCode)
-    }
-  };
-
-  const handleSubmitCodingTest = async () => {
-    console.log("submitting")
-    if (!codingTestData) return
-
-    const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
-    if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
-      toast("Candidate info missing. Please re-enter the test.");
-      router.push(`/test/${id}`);
       return;
     }
-    const finalScore = Math.round(score / codingTestData.noOfQuestions);
-    const status = finalScore >= 70 ? "PASSED" : "FAILED";
-    try {
-      await axios.post(`/api/mentor/test/${id}/submitTest`, {
-        userEmail: candidateData.email,
-        userMobile: candidateData.mobile,
-        userName: candidateData.name,
-        score: finalScore,
-        status,
-        testId: id,
-        question_ids: questionIdArray,
-        answers: answerArray,
-        test_cases_passed: passedTestCasesArray
-      });
-      toast(`Test submitted successfully! You scored ${finalScore}/ (${status})`);
-      router.push("/thank-you");
-    } catch (error) {
-      console.error("Error submitting result:", error);
-      alert("Failed to submit result. Please try again.");
-    }
 
+    const outputs = data.results || [];
+    let passedCount = 0;
+    const outputStrings: string[] = [];
+
+    // Only use the 0th index output for display
+let firstOutput = "";
+if (outputs[0]) {
+  const out = outputs[0];
+  if (typeof out === "object" && out !== null) {
+    firstOutput = out.output ?? out.stdout ?? out.error ?? "";
+  } else {
+    firstOutput = String(out);
+  }
+  firstOutput = firstOutput.trim();
+}
+
+    outputs.forEach((out: any, idx: number) => {
+      const expected = question.sampleOutput[idx]?.trim() || "";
+      let actual = "";
+
+      if (typeof out === "object" && out !== null) {
+        actual = out.output ?? out.stdout ?? out.error ?? "";
+      } else {
+        actual = String(out);
+      }
+
+      actual = actual.trim();
+      outputStrings.push(actual);
+
+      try {
+        const parsedActual = JSON.parse(actual.replace(/'/g, '"'));
+        const parsedExpected = JSON.parse(expected.replace(/'/g, '"'));
+        if (JSON.stringify(parsedActual) === JSON.stringify(parsedExpected)) passedCount++;
+      } catch {
+        if (actual === expected) passedCount++;
+      }
+    });
+
+    setGeneratedOutput(firstOutput);
+    setTestResult({
+      passed: passedCount,
+      total: question.sampleInput.length,
+    });
+  } catch (err) {
+    console.error("Error running code:", err);
+    setGeneratedOutput("Error running code. Check console for details.");
+    setTestResult({ passed: 0, total: question.sampleInput.length });
+  }
+};
+
+
+  const handleSubmitCode = () => {
+  setConfirmPopup(false);
+  if (!codingTestData) return;
+
+  const question = codingTestData.technicalQuestions[currentQuestionIndex];
+  if (!question) return;
+
+  const updatedId = [...questionIdArray, String(question.id)];
+  const updatedCode = [...answerArray, code];
+  setQuestionIdArray(updatedId);
+  setAnswerArray(updatedCode);
+
+  if (testResult) {
+    const updatedPassed = [...passedTestCasesArray, `${testResult.passed} / ${testResult.total}`];
+    setPassedTestCasesArray(updatedPassed);
+
+    // Update total score as percentage
+    const questionScore = (testResult.passed / testResult.total) * 100;
+    setScore(prev => prev + questionScore);
   }
 
-  const handleNextQuestion = () => {
-    if (!codingTestData) return;
-    if (currentQuestionIndex < codingTestData.technicalQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-      setCode("");
-      setGeneratedOutput(null);
-      setTestResult(null);
-    }
-    else {
-      handleSubmitCodingTest();
-    }
-  };
+  // Reset for next question
+  setCode("");
+  setGeneratedOutput(null);
+  setTestResult(null);
+};
+
+
+  const handleSubmitCodingTest = async () => {
+  if (!codingTestData) return;
+
+  const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
+  if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
+    toast("Candidate info missing. Please re-enter the test.");
+    router.push(`/test/${id}`);
+    return;
+  }
+
+  // Final score = average of percentage scores per question
+  const finalScore = Math.round(score / codingTestData.noOfQuestions);
+  const status = finalScore >= 70 ? "PASSED" : "FAILED";
+
+  try {
+    await axios.post(`/api/mentor/test/${id}/submitTest`, {
+      userEmail: candidateData.email,
+      userMobile: candidateData.mobile,
+      userName: candidateData.name,
+      score: finalScore,
+      status,
+      testId: id,
+      question_ids: questionIdArray,
+      answers: answerArray,
+      test_cases_passed: passedTestCasesArray,
+    });
+
+    toast(`Test submitted successfully! You scored ${finalScore}/ (${status})`);
+    router.push("/thank-you");
+  } catch (error) {
+    console.error("Error submitting result:", error);
+    alert("Failed to submit result. Please try again.");
+  }
+};
+
+const handleNextQuestion = () => {
+  if (!codingTestData) return;
+
+  if (currentQuestionIndex < codingTestData.technicalQuestions.length - 1) {
+    setCurrentQuestionIndex(prev => prev + 1);
+    setCode("");
+    setGeneratedOutput(null);
+    setTestResult(null);
+  } else {
+    handleSubmitCodingTest();
+  }
+};
 
   if (loading) return <div className="p-10 text-center">Loading test...</div>;
 
