@@ -40,7 +40,6 @@ export async function POST(req: NextRequest) {
     const payload = { language, code, testCases };
     let lambdaResponse: LambdaResponse;
 
-    // ✅ Local testing: call handler directly
     if (process.env.LAMBDA_LINK) {
       const res = await fetch(`${process.env.LAMBDA_LINK}`, {
         method: "POST",

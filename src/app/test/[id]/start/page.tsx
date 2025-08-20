@@ -1,6 +1,3 @@
-
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -220,7 +217,6 @@ const handleRunCode = async () => {
     let passedCount = 0;
     const outputStrings: string[] = [];
 
-    // Only use the 0th index output for display
 let firstOutput = "";
 if (outputs[0]) {
   const out = outputs[0];
@@ -283,12 +279,10 @@ if (outputs[0]) {
     const updatedPassed = [...passedTestCasesArray, `${testResult.passed} / ${testResult.total}`];
     setPassedTestCasesArray(updatedPassed);
 
-    // Update total score as percentage
     const questionScore = (testResult.passed / testResult.total) * 100;
     setScore(prev => prev + questionScore);
   }
 
-  // Reset for next question
   setCode("");
   setGeneratedOutput(null);
   setTestResult(null);
@@ -305,7 +299,6 @@ if (outputs[0]) {
     return;
   }
 
-  // Final score = average of percentage scores per question
   const finalScore = Math.round(score / codingTestData.noOfQuestions);
   const status = finalScore >= 70 ? "PASSED" : "FAILED";
 
