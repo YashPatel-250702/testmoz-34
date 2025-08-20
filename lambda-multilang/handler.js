@@ -1,5 +1,7 @@
 'use strict';
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 function runProcess(cmd, args, { input = '', timeoutMs = 5000 } = {}) {
   return new Promise((resolve) => {
@@ -46,21 +48,32 @@ exports.handler = async (event) => {
     cmd = 'bash';
     argsBuilder = () => ['-c', code];
   } else if (language === 'java') {
-    return { error: 'Java runner not implemented yet' };
+    const fileName = 'Main.java';
+    const className = 'Main';
+    fs.writeFileSync(fileName, code);
+    const compileRes = await runProcess('javac', [fileName], { timeoutMs: timeout });
+    if (compileRes.exitCode !== 0) {
+      return {
+        language,
+        error: 'Compilation failed',
+        stderr: compileRes.stderr,
+      };
+    }
+    cmd = 'java';
+    argsBuilder = () => [className];
   } else {
     return { error: `Unsupported language: ${language}` };
   }
 
   const results = [];
 
-  if (testCases.length > 0 && code.includes('input(')) {
+  if (testCases.length > 0) {
     for (const testcase of testCases) {
       const res = await runProcess(cmd, argsBuilder(), {
         input: testcase + '\n',
         timeoutMs: timeout,
       });
 
-      // Try parsing stdout as JSON for easier frontend use
       let parsedOutput = res.stdout;
       try {
         parsedOutput = JSON.parse(res.stdout.replace(/'/g, '"'));
@@ -71,7 +84,7 @@ exports.handler = async (event) => {
         exitCode: res.exitCode,
         stdout: res.stdout,
         stderr: res.stderr,
-        output: parsedOutput, // parsed output for frontend
+        output: parsedOutput,
         timedOut: res.timedOut,
       });
     }
