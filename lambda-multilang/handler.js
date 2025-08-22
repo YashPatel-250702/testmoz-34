@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-function runProcess(cmd, args, { input = '', timeoutMs = 5000 } = {}) {
+function runProcess(cmd, args, { input = '', timeoutMs = 30000 } = {}) {
   console.log(`🔹 Running process: ${cmd} ${args.join(' ')}, input="${input.trim()}"`);
   return new Promise((resolve) => {
     const child = spawn(cmd, args, { stdio: ['pipe', 'pipe', 'pipe'] });
@@ -45,7 +45,7 @@ function runProcess(cmd, args, { input = '', timeoutMs = 5000 } = {}) {
 exports.handler = async (event) => {
   console.log("📥 Incoming event:", JSON.stringify(event, null, 2));
 
-  const { language, code, testCases = [], timeout = 5000 } = event || {};
+  const { language, code, testCases = [], timeout = 30000 } = event || {};
   if (!language || !code) return { error: 'language and code required' };
 
   let cmd, argsBuilder;
@@ -60,18 +60,13 @@ exports.handler = async (event) => {
     cmd = 'bash';
     argsBuilder = () => ['-c', code];
   } else if (language === 'java') {
-    // Using a constant for the temp directory is good practice
     const tmpDir = '/tmp'; 
     const fileName = 'Main.java';
     const className = 'Main';
-    // Ensure the file path is always an absolute path inside /tmp
     const filePath = path.join(tmpDir, fileName);
-
-    // Add this log to see the exact path being used
     console.log(`Attempting to write Java file to: ${filePath}`);
     fs.writeFileSync(filePath, code);
 
-    // Compile
     const compileRes = await runProcess('javac', [filePath], { timeoutMs: timeout });
     if (compileRes.exitCode !== 0) {
       console.error("❌ Compilation error:", compileRes.stderr);
@@ -82,7 +77,6 @@ exports.handler = async (event) => {
       };
     }
 
-    // Run with explicit classpath pointing to /tmp
     cmd = 'java';
     argsBuilder = () => ['-cp', tmpDir, className];
   } else {

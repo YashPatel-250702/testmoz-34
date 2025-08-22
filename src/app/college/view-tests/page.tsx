@@ -76,7 +76,7 @@ export default function CollegeViewTestsPage() {
       ) : activeTests?.length === 0 ? (
         <p className="text-center text-gray-600">No active college tests available.</p>
       ) : (
-        activeTests?.map((test) => (
+        activeTests?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((test) => (
           <Card key={test.id} className="mb-6 hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">

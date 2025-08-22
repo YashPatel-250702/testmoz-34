@@ -45,7 +45,7 @@ export default function CreateTestPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const testTypeParam = searchParams.get("type")?.toUpperCase() || "APPTITUDE"
-const [savedTestId, setSavedTestId] = useState<string | null>(null)
+  const [savedTestId, setSavedTestId] = useState<string | null>(null)
 
   const isAptitude = testTypeParam === "APPTITUDE"
   const testType = testTypeParam
@@ -63,7 +63,7 @@ const [savedTestId, setSavedTestId] = useState<string | null>(null)
 
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedTest, setGeneratedTest] = useState<GeneratedTest | null>(null)
-const [isSaveDone, setIsSaveDone] = useState(false)
+  const [isSaveDone, setIsSaveDone] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,7 +78,7 @@ const [isSaveDone, setIsSaveDone] = useState(false)
       dataToSend.codingPercentage = 0
       dataToSend.theoryPercentage = 100
     }
-  setIsSaving(true)
+    setIsSaving(true)
     try {
       const mentorId = typeof window !== "undefined" ? localStorage.getItem("mentorId") : null
       const res = await fetch(`/api/mentor/${mentorId}/createTests`, {
@@ -98,7 +98,7 @@ const [isSaveDone, setIsSaveDone] = useState(false)
       toast("Failed to generate tests.")
     } finally {
       setIsGenerating(false)
-       setIsSaving(false)
+      setIsSaving(false)
     }
   }
 
@@ -119,26 +119,31 @@ const [isSaveDone, setIsSaveDone] = useState(false)
 
     const payload = isCodingTest
       ? {
-          title: generatedTest.title,
-          description: generatedTest.description,
-          durationMinutes: formData.duration,
-          numberOfQuestions: formData.numberOfQuestions,
-          complexity: formData.complexity.toLowerCase(),
-          conceptList: formData.conceptsList,
-          type: testTypeRaw,
-          questions: generatedTest.questions.map((q) => ({
-            problemStatement: q.problemStatement,
-            sampleInput: [String(q.sampleInput)],
-            sampleOutput: [String(q.sampleOutput)],
-            constraints: String(q.constraints) || null, 
-            complexity: String(q.complexity) || null,
-          })),
-        }
+        title: generatedTest.title,
+        description: generatedTest.description,
+        durationMinutes: formData.duration,
+        numberOfQuestions: formData.numberOfQuestions,
+        complexity: formData.complexity.toLowerCase(),
+        conceptList: formData.conceptsList,
+        type: testTypeRaw,
+        questions: generatedTest.questions.map((q) => ({
+          problemStatement: q.problemStatement,
+          sampleInput: Array.isArray(q.sampleInput)
+            ? q.sampleInput.map(String)
+            : [String(q.sampleInput)],
+          sampleOutput: Array.isArray(q.sampleOutput)
+            ? q.sampleOutput.map(String)
+            : [String(q.sampleOutput)],
+          constraints: q.constraints ? String(q.constraints) : null,
+          complexity: q.complexity ? String(q.complexity) : null,
+        })),
+
+      }
       : {
-          generatedTest,
-          ...formData,
-          testType,
-        }
+        generatedTest,
+        ...formData,
+        testType,
+      }
 
     try {
       const res = await fetch(endpoint, {
@@ -151,28 +156,28 @@ const [isSaveDone, setIsSaveDone] = useState(false)
       })
 
       const data = await res.json()
-       if (!res.ok) throw new Error(data.message || "Failed to save test")
+      if (!res.ok) throw new Error(data.message || "Failed to save test")
 
-    toast.success("Test saved successfully!")
+      toast.success("Test saved successfully!")
 
-    // Store the saved test ID from response
-    setSavedTestId(data.testResult?.id || null)
-    setIsSaveDone(true)  // mark save completed
-  } catch (err) {
-    console.error("Save test error:", err)
-    toast.error("Error saving test.")
+      // Store the saved test ID from response
+      setSavedTestId(data.testResult?.id || null)
+      setIsSaveDone(true)  // mark save completed
+    } catch (err) {
+      console.error("Save test error:", err)
+      toast.error("Error saving test.")
+    }
   }
-}
 
 
   const handleEditQuestions = () => {
-  if (!savedTestId) {
-    toast.error("Test ID not found. Please save the test first.")
-    return
-  }
+    if (!savedTestId) {
+      toast.error("Test ID not found. Please save the test first.")
+      return
+    }
 
-  router.push(`/mentor/edit-test/${savedTestId}`)
-}
+    router.push(`/mentor/edit-test/${savedTestId}`)
+  }
 
 
   return (
@@ -265,8 +270,8 @@ const [isSaveDone, setIsSaveDone] = useState(false)
                     </div>
 
                     {/* Skills input (only for coding tests) */}
-                  
-                   <div className="space-y-2">
+
+                    <div className="space-y-2">
                       <Label htmlFor="skills">Skills</Label>
                       <Input
                         id="skills"
@@ -278,7 +283,7 @@ const [isSaveDone, setIsSaveDone] = useState(false)
                         disabled={isGenerating || isSaving}
                       />
                     </div>
- 
+
 
                     {/* Duration & No. of Questions */}
                     <div className="grid grid-cols-2 gap-4">
@@ -311,7 +316,7 @@ const [isSaveDone, setIsSaveDone] = useState(false)
                     </div>
 
                     {/* Complexity */}
-                 <div className="space-y-2">
+                    <div className="space-y-2">
                       <Label htmlFor="complexity">Complexity Level</Label>
                       <div className="flex gap-2">
                         <Button
@@ -373,9 +378,8 @@ const [isSaveDone, setIsSaveDone] = useState(false)
                                 return (
                                   <div
                                     key={i}
-                                    className={`p-2 border rounded ${
-                                      isCorrect ? "bg-green-100 font-semibold" : "bg-white"
-                                    }`}
+                                    className={`p-2 border rounded ${isCorrect ? "bg-green-100 font-semibold" : "bg-white"
+                                      }`}
                                   >
                                     {label}. {opt}
                                   </div>
@@ -401,28 +405,28 @@ const [isSaveDone, setIsSaveDone] = useState(false)
                       ))}
                     </div>
                     <div className="mt-4 flex gap-2">
-                    <Button
-  className="flex-1"
-  onClick={handleSaveTest}
-  disabled={isSaving || isGenerating || isSaveDone}  // disable if already saved
->
-  {isSaving ? "💾 Saving..." : "💾 Save Test"}
-</Button>
+                      <Button
+                        className="flex-1"
+                        onClick={handleSaveTest}
+                        disabled={isSaving || isGenerating || isSaveDone}  // disable if already saved
+                      >
+                        {isSaving ? "💾 Saving..." : "💾 Save Test"}
+                      </Button>
 
-<Button
-  variant="outline"
-  className="flex-1 bg-transparent"
-  onClick={() => {
-    if (!savedTestId) {
-      toast.error("Test ID not found. Please save the test first.")
-      return
-    }
-    router.push(`/mentor/edit-test/${savedTestId}`)
-  }}
-  disabled={!isSaveDone || isSaving || isGenerating} // enable only after save success
->
-  ✏️ Edit Questions
-</Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1 bg-transparent"
+                        onClick={() => {
+                          if (!savedTestId) {
+                            toast.error("Test ID not found. Please save the test first.")
+                            return
+                          }
+                          router.push(`/mentor/edit-test/${savedTestId}`)
+                        }}
+                        disabled={!isSaveDone || isSaving || isGenerating} // enable only after save success
+                      >
+                        ✏️ Edit Questions
+                      </Button>
 
                     </div>
                   </CardContent>
