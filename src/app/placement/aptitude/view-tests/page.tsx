@@ -72,7 +72,7 @@ export default function AptitudeViewTestsPage() {
       ) : activeTests?.length === 0 ? (
         <p className="text-center text-gray-600">No active aptitude tests available.</p>
       ) : (
-        activeTests?.map((test) => (
+        activeTests?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((test) => (
           <Card key={test.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">

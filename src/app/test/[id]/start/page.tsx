@@ -67,6 +67,8 @@ export default function TestStartPage() {
   const [confirmPopup, setConfirmPopup] = useState(false)
   const [score, setScore] = useState(0);
   const [isCorrect, setIsCorrect] = useState<string[]>([])
+  const [enableNext, setEnableNext] = useState(false)
+  const [testCaserunning, setTestCaseRunning] = useState(false)
 
 
   useEffect(() => {
@@ -186,11 +188,13 @@ export default function TestStartPage() {
   };
 
 const handleRunCode = async () => {
+  setTestCaseRunning(true);
   if (!codingTestData) return;
   const question = codingTestData.technicalQuestions[currentQuestionIndex];
   if (!question) return;
 
   try {
+    setTestResult(null);
     const res = await fetch("/api/compile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -200,7 +204,6 @@ const handleRunCode = async () => {
         testCases: question.sampleInput || []
       }),
     });
-
     const data = await res.json();
     console.log(data)
 
@@ -212,7 +215,9 @@ const handleRunCode = async () => {
       });
       return;
     }
-
+if(data.results){
+  setTestCaseRunning(false)
+}
     const outputs = data.results || [];
     let passedCount = 0;
     const outputStrings: string[] = [];
@@ -221,34 +226,31 @@ let firstOutput = "";
 if (outputs[0]) {
   const out = outputs[0];
   if (typeof out === "object" && out !== null) {
-    firstOutput = out.output ?? out.stdout ?? out.error ?? "";
+    firstOutput = out.stdout || out.output || out.stderr || "";
   } else {
     firstOutput = String(out);
   }
-  firstOutput = firstOutput.trim();
 }
 
-    outputs.forEach((out: any, idx: number) => {
-      const expected = question.sampleOutput[idx]?.trim() || "";
-      let actual = "";
+   outputs.forEach((out: any, idx: number) => {
+  const expected = question.sampleOutput[idx]?.trim() || "";
+  let actual = "";
 
-      if (typeof out === "object" && out !== null) {
-        actual = out.output ?? out.stdout ?? out.error ?? "";
-      } else {
-        actual = String(out);
-      }
+  if (typeof out === "object" && out !== null) {
+    actual = out.stdout ?? out.output ?? out.stderr ?? "";
+  } else {
+    actual = String(out);
+  }
 
-      actual = actual.trim();
-      outputStrings.push(actual);
+  outputStrings.push(actual);
 
-      try {
-        const parsedActual = JSON.parse(actual.replace(/'/g, '"'));
-        const parsedExpected = JSON.parse(expected.replace(/'/g, '"'));
-        if (JSON.stringify(parsedActual) === JSON.stringify(parsedExpected)) passedCount++;
-      } catch {
-        if (actual === expected) passedCount++;
-      }
-    });
+  try {
+    if (actual.trim() === expected.trim()) passedCount++;
+  } catch {
+    if (actual === expected) passedCount++;
+  }
+});
+
 
     setGeneratedOutput(firstOutput);
     setTestResult({
@@ -256,8 +258,9 @@ if (outputs[0]) {
       total: question.sampleInput.length,
     });
   } catch (err) {
+      setTestCaseRunning(false)
     console.error("Error running code:", err);
-    setGeneratedOutput("Error running code. Check console for details.");
+    setGeneratedOutput("Error running code.");
     setTestResult({ passed: 0, total: question.sampleInput.length });
   }
 };
@@ -282,10 +285,7 @@ if (outputs[0]) {
     const questionScore = (testResult.passed / testResult.total) * 100;
     setScore(prev => prev + questionScore);
   }
-
-  setCode("");
-  setGeneratedOutput(null);
-  setTestResult(null);
+  setEnableNext(true);
 };
 
 
@@ -331,6 +331,7 @@ const handleNextQuestion = () => {
     setCode("");
     setGeneratedOutput(null);
     setTestResult(null);
+    setEnableNext(false)
   } else {
     handleSubmitCodingTest();
   }
@@ -450,27 +451,31 @@ const handleNextQuestion = () => {
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={handleRunCode}
-                      className="px-4 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white"
+                      disabled={enableNext}
+                      className="px-4 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed"
                     >
                       Run Code
                     </button>
 
                     <button
                       onClick={() => setConfirmPopup(true)}
-                      className="px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white"
+                      disabled={enableNext}
+                      className="px-4 py-2 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed"
                     >
                       Submit Code
                     </button>
 
                     <button
                       onClick={handleNextQuestion}
-                      className={`px-4 py-2 rounded-md text-white transition-colors duration-300 bg-indigo-600 hover:bg-indigo-700 cursor-pointer`}
+                      disabled={!enableNext}
+                      className={`px-4 py-2 rounded-md text-white transition-colors duration-300 bg-indigo-600 hover:bg-indigo-700 cursor-pointer disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed`}
                     >
                       {currentQuestionIndex < codingTestData.technicalQuestions.length - 1 ? "Next" : "Submit"}
                     </button>
                   </div>
+{testCaserunning ? ( <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />) : (<div>
 
-                  {testResult && (
+ {testResult && (
                     <>
                       <div style={{ marginTop: "10px", marginBottom: "10px" }}>
                         <p>
@@ -491,6 +496,9 @@ const handleNextQuestion = () => {
                       </div>
                     </>
                   )}
+
+</div>)}
+                 
                 </div>
               );
             })()}

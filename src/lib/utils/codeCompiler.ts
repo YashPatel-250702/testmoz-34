@@ -11,7 +11,7 @@ export async function runCode({
   code,
   language,
   input = "",
-  timeout = 10000
+  timeout = 30000
 }: CodeRunOptions): Promise<{ output: string; error: string }> {
   return new Promise((resolve, reject) => {
     let cmd: string;
