@@ -20,8 +20,8 @@ export default function TechnicalViewTestsPage() {
   const [activeTests, setActiveTests] = useState<Test[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [linkLoadingId, setLinkLoadingId] = useState<string | null>(null);
-    const [copiedId, setCopiedId] = useState<string | null>(null);
-  const domain=process.env.NEXT_PUBLIC_DOMAIN_LINK;
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const domain = process.env.NEXT_PUBLIC_DOMAIN_LINK;
   const fetchTests = async () => {
     setLoading(true)
     try {
@@ -33,11 +33,11 @@ export default function TechnicalViewTestsPage() {
     } catch (error) {
       console.error("Error fetching tests:", error)
       if (axios.isAxiosError(error)) {
-         if (error.response?.status === 404) {
-            setActiveTests([]);
-         } else {
-           toast.error("Error fetching tests. Please try again later.")
-         }
+        if (error.response?.status === 404) {
+          setActiveTests([]);
+        } else {
+          toast.error("Error fetching tests. Please try again later.")
+        }
       }
     } finally {
       setLoading(false)
@@ -54,9 +54,9 @@ export default function TechnicalViewTestsPage() {
       const response = await axios.get(`/api/mentor/test/${testId}/generateLink`)
       if (response.status === 200) {
         await fetchTests()
-        
+
         toast.success("Public link generated successfully.")
-        
+
       }
     } catch (error) {
       console.error("Error generating link:", error)
@@ -77,7 +77,7 @@ export default function TechnicalViewTestsPage() {
       ) : activeTests?.length === 0 ? (
         <p className="text-center text-gray-600">No active technical tests available.</p>
       ) : (
-        activeTests?.map((test) => (
+        activeTests?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((test) => (
           <Card key={test.id} className="mb-6 hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -97,18 +97,18 @@ export default function TechnicalViewTestsPage() {
 
               {test.publicLink ? (
                 <div className="flex gap-2 flex-wrap">
-                 <Button
-  variant="outline"
-  disabled={copiedId === test.id}
-  onClick={() => {
-    navigator.clipboard.writeText(`${domain}/test/${test.id}?${test.publicLink}`);
-    toast.success("Link copied to clipboard");
-    setCopiedId(test.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  }}
->
-  {copiedId === test.id ? "Copied!" : "Copy Public Test Link"}
-</Button>
+                  <Button
+                    variant="outline"
+                    disabled={copiedId === test.id}
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${domain}/test/${test.id}?${test.publicLink}`);
+                      toast.success("Link copied to clipboard");
+                      setCopiedId(test.id);
+                      setTimeout(() => setCopiedId(null), 2000);
+                    }}
+                  >
+                    {copiedId === test.id ? "Copied!" : "Copy Public Test Link"}
+                  </Button>
                   <Button
                     variant="destructive"
                     onClick={() => handleGenerateLink(test.id)}

@@ -32,7 +32,6 @@ export default function ManageTestsPage() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    // Get type from searchParams safely on client
     const paramType = searchParams.get("type")
     if (paramType) setType(paramType)
   }, [searchParams])
@@ -91,7 +90,9 @@ export default function ManageTestsPage() {
         <p>No tests found.</p>
       ) : (
         <div className="grid gap-6">
-          {tests.map((test) => (
+          {tests
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .map((test) => (
             <Card key={test.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex justify-between items-start">
