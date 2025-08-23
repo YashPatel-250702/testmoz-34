@@ -66,9 +66,9 @@ export default function TestStartPage() {
   const [passedTestCasesArray, setPassedTestCasesArray] = useState<string[]>([]);
   const [confirmPopup, setConfirmPopup] = useState(false)
   const [score, setScore] = useState(0);
-  const [isCorrect, setIsCorrect] = useState<string[]>([])
   const [enableNext, setEnableNext] = useState(false)
   const [testCaserunning, setTestCaseRunning] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   useEffect(() => {
@@ -120,27 +120,43 @@ export default function TestStartPage() {
   }, [timeLeft]);
 
   const handleOptionSelect = (questionId: string | number, selectedOption: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: selectedOption }));
-   
-    const updatedCode = [...answerArray, selectedOption];
-    setAnswerArray(updatedCode);
-   
+    const value = selectedOption && selectedOption.trim() !== "" ? selectedOption : "-";
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: value
+    }));
   };
 
   const handleNext = (questionId: string | number) => {
     if (!testData) return;
-     const updatedId = [...questionIdArray, String(questionId)];
-      setQuestionIdArray(updatedId);
+
+    let updatedAnswers = { ...answers };
+    let updatedAnswerArray = [...answerArray];
+    let updatedIdArray = [...questionIdArray];
+    if (!answers[questionId]) {
+      updatedAnswers[questionId] = "-";
+      updatedAnswerArray.push("-");
+    } else {
+      updatedAnswerArray.push(answers[questionId]);
+    }
+    updatedIdArray.push(String(questionId));
+    setAnswers(updatedAnswers);
+    setAnswerArray(updatedAnswerArray);
+    setQuestionIdArray(updatedIdArray);
+
     if (currentQuestionIndex < testData.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
-      handleSubmit();
+      handleSubmit(updatedIdArray, updatedAnswerArray);
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (
+    finalQuestionIds = questionIdArray,
+    finalAnswerArray = answerArray
+  ) => {
     if (!testData) return;
-
+    setIsSubmitting(true);
     const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
     if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
       alert("Candidate info missing. Please re-enter the test.");
@@ -154,13 +170,12 @@ export default function TestStartPage() {
       if (userAnswer && userAnswer === question.answer) {
         score = score + 1;
         correctnessArray.push("C");
-      } else if (userAnswer && userAnswer !== question.answer) {
+      } else if (userAnswer && userAnswer !== question.answer && userAnswer !== "-") {
         correctnessArray.push("IC");
       } else {
         correctnessArray.push("-");
       }
     }
-    setIsCorrect(correctnessArray);
 
     const totalQuestions = testData.questions.length;
     const percentage = (score / totalQuestions) * 100;
@@ -174,97 +189,95 @@ export default function TestStartPage() {
         score: percentage,
         status,
         testId: id,
-        question_ids: questionIdArray,
-        answers: answerArray,
-        isCorrect
+        question_ids: finalQuestionIds,
+        answers: finalAnswerArray,
+        isCorrect: correctnessArray,
       });
 
       toast(`Test submitted successfully! You scored ${percentage}/(${totalQuestions * 10}) (${status})`);
       router.push("/thank-you");
     } catch (error) {
+      setIsSubmitting(false)
       console.error("Error submitting result:", error);
       alert("Failed to submit result. Please try again.");
     }
   };
 
-const handleRunCode = async () => {
-  setTestCaseRunning(true);
-  if (!codingTestData) return;
-  const question = codingTestData.technicalQuestions[currentQuestionIndex];
-  if (!question) return;
+  const handleRunCode = async () => {
+    setTestCaseRunning(true);
+    if (!codingTestData) return;
+    const question = codingTestData.technicalQuestions[currentQuestionIndex];
+    if (!question) return;
 
-  try {
-    setTestResult(null);
-    const res = await fetch("/api/compile", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        code,
-        language,
-        testCases: question.sampleInput || []
-      }),
-    });
-    const data = await res.json();
-    console.log(data)
+    try {
+      setTestResult(null);
+      const res = await fetch("/api/compile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          language,
+          testCases: question.sampleInput || []
+        }),
+      });
+      const data = await res.json();
+      console.log(data)
+      if (data.error) {
+        setGeneratedOutput(data.error);
+        setTestResult({
+          passed: 0,
+          total: question.sampleInput.length,
+        });
+        return;
+      }
+      if (data.results) {
+        setTestCaseRunning(false)
+      }
+      const outputs = data.results || [];
+      let passedCount = 0;
+      const outputStrings: string[] = [];
 
-    if (data.error) {
-      setGeneratedOutput(data.error);
+      let firstOutput = "";
+      if (outputs[0]) {
+        const out = outputs[0];
+        if (typeof out === "object" && out !== null) {
+          firstOutput = out.stdout || out.output || out.stderr || "";
+        } else {
+          firstOutput = String(out);
+        }
+      }
+
+      outputs.forEach((out: any, idx: number) => {
+        const expected = question.sampleOutput[idx]?.trim() || "";
+        let actual = "";
+
+        if (typeof out === "object" && out !== null) {
+          actual = out.stdout ?? out.output ?? out.stderr ?? "";
+        } else {
+          actual = String(out);
+        }
+
+        outputStrings.push(actual);
+
+        try {
+          if (actual.trim() === expected.trim()) passedCount++;
+        } catch {
+          if (actual === expected) passedCount++;
+        }
+      });
+
+      setGeneratedOutput(firstOutput);
       setTestResult({
-        passed: 0,
+        passed: passedCount,
         total: question.sampleInput.length,
       });
-      return;
-    }
-if(data.results){
-  setTestCaseRunning(false)
-}
-    const outputs = data.results || [];
-    let passedCount = 0;
-    const outputStrings: string[] = [];
-
-let firstOutput = "";
-if (outputs[0]) {
-  const out = outputs[0];
-  if (typeof out === "object" && out !== null) {
-    firstOutput = out.stdout || out.output || out.stderr || "";
-  } else {
-    firstOutput = String(out);
-  }
-}
-
-   outputs.forEach((out: any, idx: number) => {
-  const expected = question.sampleOutput[idx]?.trim() || "";
-  let actual = "";
-
-  if (typeof out === "object" && out !== null) {
-    actual = out.stdout ?? out.output ?? out.stderr ?? "";
-  } else {
-    actual = String(out);
-  }
-
-  outputStrings.push(actual);
-
-  try {
-    if (actual.trim() === expected.trim()) passedCount++;
-  } catch {
-    if (actual === expected) passedCount++;
-  }
-});
-
-
-    setGeneratedOutput(firstOutput);
-    setTestResult({
-      passed: passedCount,
-      total: question.sampleInput.length,
-    });
-  } catch (err) {
+    } catch (err) {
       setTestCaseRunning(false)
-    console.error("Error running code:", err);
-    setGeneratedOutput("Error running code.");
-    setTestResult({ passed: 0, total: question.sampleInput.length });
-  }
-};
-
+      console.error("Error running code:", err);
+      setGeneratedOutput("Error running code.");
+      setTestResult({ passed: 0, total: question.sampleInput.length });
+    }
+  };
 
   const handleSubmitCode = () => {
   setConfirmPopup(false);
@@ -284,80 +297,81 @@ if (outputs[0]) {
 
     const questionScore = (testResult.passed / testResult.total) * 100;
     setScore(prev => prev + questionScore);
+  } else {
+    const updatedPassed = [...passedTestCasesArray, "-"];
+    setPassedTestCasesArray(updatedPassed);
   }
+
   setEnableNext(true);
 };
 
 
   const handleSubmitCodingTest = async () => {
-  if (!codingTestData) return;
+    if (!codingTestData) return;
+    setIsSubmitting(true)
+    const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
+    if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
+      setIsSubmitting(false)
+      toast("Candidate info missing. Please re-enter the test.");
+      router.push(`/test/${id}`);
+      return;
+    }
 
-  const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
-  if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
-    toast("Candidate info missing. Please re-enter the test.");
-    router.push(`/test/${id}`);
-    return;
-  }
+    const finalScore = Math.round(score / codingTestData.noOfQuestions);
+    const status = finalScore >= 70 ? "PASSED" : "FAILED";
 
-  const finalScore = Math.round(score / codingTestData.noOfQuestions);
-  const status = finalScore >= 70 ? "PASSED" : "FAILED";
+    try {
+      await axios.post(`/api/mentor/test/${id}/submitTest`, {
+        userEmail: candidateData.email,
+        userMobile: candidateData.mobile,
+        userName: candidateData.name,
+        score: finalScore,
+        status,
+        testId: id,
+        question_ids: questionIdArray,
+        answers: answerArray,
+        test_cases_passed: passedTestCasesArray,
+      });
 
-  try {
-    await axios.post(`/api/mentor/test/${id}/submitTest`, {
-      userEmail: candidateData.email,
-      userMobile: candidateData.mobile,
-      userName: candidateData.name,
-      score: finalScore,
-      status,
-      testId: id,
-      question_ids: questionIdArray,
-      answers: answerArray,
-      test_cases_passed: passedTestCasesArray,
-    });
+      toast(`Test submitted successfully! You scored ${finalScore}/ (${status})`);
+      router.push("/thank-you");
+    } catch (error) {
+      setIsSubmitting(false)
+      console.error("Error submitting result:", error);
+      toast("Failed to submit result. Please try again.");
+    }
+  };
 
-    toast(`Test submitted successfully! You scored ${finalScore}/ (${status})`);
-    router.push("/thank-you");
-  } catch (error) {
-    console.error("Error submitting result:", error);
-    alert("Failed to submit result. Please try again.");
-  }
-};
-
-const handleNextQuestion = () => {
-  if (!codingTestData) return;
-
-  if (currentQuestionIndex < codingTestData.technicalQuestions.length - 1) {
-    setCurrentQuestionIndex(prev => prev + 1);
-    setCode("");
-    setGeneratedOutput(null);
-    setTestResult(null);
-    setEnableNext(false)
-  } else {
-    handleSubmitCodingTest();
-  }
-};
+  const handleNextQuestion = () => {
+    if (!codingTestData) return;
+    if (currentQuestionIndex < codingTestData.technicalQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setCode("");
+      setGeneratedOutput(null);
+      setTestResult(null);
+      setEnableNext(false)
+    } else {
+      handleSubmitCodingTest();
+    }
+  };
 
   if (loading) return <div className="p-10 text-center">Loading test...</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-
       {testData?.questions?.length && (
         <>
-
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">{testData.name}</h1>
             <div className="text-red-600 font-bold">
               Time Left: {Math.floor(timeLeft / 60)}:{("0" + (timeLeft % 60)).slice(-2)}
             </div>
           </div>
-
           <div className="border p-4 rounded shadow">
             <h2 className="text-xl font-semibold mb-3">
               Question {currentQuestionIndex + 1} of {testData.questions.length}
             </h2>
             <p className="mb-4 whitespace-pre-line">{testData.questions[currentQuestionIndex].question}</p>
-
             <div className="space-y-2">
               {testData.questions[currentQuestionIndex].options?.map((opt, index) => (
                 <label
@@ -378,35 +392,30 @@ const handleNextQuestion = () => {
               ))}
             </div>
           </div>
-
           <div className="flex justify-end">
             <button
-              onClick={() =>handleNext(testData.questions[currentQuestionIndex].id)}
-              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+              onClick={() => handleNext(testData.questions[currentQuestionIndex].id)}
+              className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
             >
               {currentQuestionIndex < testData.questions.length - 1 ? "Next" : "Submit"}
             </button>
           </div>
-
         </>
       )}
-
       {codingTestData?.technicalQuestions?.length && (
         <>
-
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">{codingTestData.name}</h1>
             <div className="text-red-600 font-bold">
               Time Left: {Math.floor(timeLeft / 60)}:{("0" + (timeLeft % 60)).slice(-2)}
             </div>
           </div>
-
           <div style={{ padding: "20px", maxWidth: "800px", margin: "auto" }}>
             {(() => {
               const question =
                 codingTestData.technicalQuestions[currentQuestionIndex];
               if (!question) return null;
-
               return (
                 <div key={question.id}>
                   <h3>Question {currentQuestionIndex + 1} / {codingTestData.noOfQuestions}</h3>
@@ -416,7 +425,6 @@ const handleNextQuestion = () => {
                   <p>
                     <strong>Constraints:</strong> {question.constraints}
                   </p>
-
                   {question.sampleInput && question.sampleOutput && (
                     <div style={{ marginTop: "10px", marginBottom: "10px" }}>
                       <p>
@@ -427,7 +435,6 @@ const handleNextQuestion = () => {
                       </p>
                     </div>
                   )}
-
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
@@ -456,7 +463,6 @@ const handleNextQuestion = () => {
                     >
                       Run Code
                     </button>
-
                     <button
                       onClick={() => setConfirmPopup(true)}
                       disabled={enableNext}
@@ -464,47 +470,41 @@ const handleNextQuestion = () => {
                     >
                       Submit Code
                     </button>
-
                     <button
                       onClick={handleNextQuestion}
-                      disabled={!enableNext}
+                      disabled={!enableNext || isSubmitting}
                       className={`px-4 py-2 rounded-md text-white transition-colors duration-300 bg-indigo-600 hover:bg-indigo-700 cursor-pointer disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed`}
                     >
                       {currentQuestionIndex < codingTestData.technicalQuestions.length - 1 ? "Next" : "Submit"}
                     </button>
                   </div>
-{testCaserunning ? ( <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />) : (<div>
-
- {testResult && (
-                    <>
-                      <div style={{ marginTop: "10px", marginBottom: "10px" }}>
-                        <p>
-                          <strong>Sample Input:</strong> {question.sampleInput[0]}
-                        </p>
-                        <p>
-                          <strong>Sample Output:</strong> {question.sampleOutput[0]}
-                        </p>
-
-                        {generatedOutput !== null && (
+                  {testCaserunning ? (<div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />) : (<div>
+                    {testResult && (
+                      <>
+                        <div style={{ marginTop: "10px", marginBottom: "10px" }}>
                           <p>
-                            <strong>Your Output:</strong> {generatedOutput}
+                            <strong>Sample Input:</strong> {question.sampleInput[0]}
                           </p>
-                        )}
-                      </div>
-                      <div className="mt-3 text-green-600 font-bold">
-                        {testResult.passed} / {testResult.total} Test Cases Passed
-                      </div>
-                    </>
-                  )}
-
-</div>)}
-                 
+                          <p>
+                            <strong>Sample Output:</strong> {question.sampleOutput[0]}
+                          </p>
+                          {generatedOutput !== null && (
+                            <p>
+                              <strong>Your Output:</strong> {generatedOutput}
+                            </p>
+                          )}
+                        </div>
+                        <div className="mt-3 text-green-600 font-bold">
+                          {testResult.passed} / {testResult.total} Test Cases Passed
+                        </div>
+                      </>
+                    )}
+                  </div>)}
                 </div>
               );
             })()}
           </div>
         </>
-
       )}
 
       {confirmPopup && (
@@ -532,8 +532,6 @@ const handleNextQuestion = () => {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }
