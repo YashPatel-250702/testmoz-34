@@ -280,32 +280,38 @@ export default function TestStartPage() {
   };
 
   const handleSubmitCode = () => {
-    setConfirmPopup(false);
-    if (!codingTestData) return;
+  setConfirmPopup(false);
+  if (!codingTestData) return;
 
-    const question = codingTestData.technicalQuestions[currentQuestionIndex];
-    if (!question) return;
+  const question = codingTestData.technicalQuestions[currentQuestionIndex];
+  if (!question) return;
 
-    const updatedId = [...questionIdArray, String(question.id)];
-    const updatedCode = [...answerArray, code];
-    setQuestionIdArray(updatedId);
-    setAnswerArray(updatedCode);
+  const updatedId = [...questionIdArray, String(question.id)];
+  const updatedCode = [...answerArray, code];
+  setQuestionIdArray(updatedId);
+  setAnswerArray(updatedCode);
 
-    if (testResult) {
-      const updatedPassed = [...passedTestCasesArray, `${testResult.passed} / ${testResult.total}`];
-      setPassedTestCasesArray(updatedPassed);
+  if (testResult) {
+    const updatedPassed = [...passedTestCasesArray, `${testResult.passed} / ${testResult.total}`];
+    setPassedTestCasesArray(updatedPassed);
 
-      const questionScore = (testResult.passed / testResult.total) * 100;
-      setScore(prev => prev + questionScore);
-    }
-    setEnableNext(true);
-  };
+    const questionScore = (testResult.passed / testResult.total) * 100;
+    setScore(prev => prev + questionScore);
+  } else {
+    const updatedPassed = [...passedTestCasesArray, "-"];
+    setPassedTestCasesArray(updatedPassed);
+  }
+
+  setEnableNext(true);
+};
+
 
   const handleSubmitCodingTest = async () => {
     if (!codingTestData) return;
-
+    setIsSubmitting(true)
     const candidateData: CandidateInfo = JSON.parse(localStorage.getItem("candidateInfo") || "{}");
     if (!candidateData.name || !candidateData.email || !candidateData.mobile) {
+      setIsSubmitting(false)
       toast("Candidate info missing. Please re-enter the test.");
       router.push(`/test/${id}`);
       return;
@@ -330,8 +336,9 @@ export default function TestStartPage() {
       toast(`Test submitted successfully! You scored ${finalScore}/ (${status})`);
       router.push("/thank-you");
     } catch (error) {
+      setIsSubmitting(false)
       console.error("Error submitting result:", error);
-      alert("Failed to submit result. Please try again.");
+      toast("Failed to submit result. Please try again.");
     }
   };
 
@@ -465,7 +472,7 @@ export default function TestStartPage() {
                     </button>
                     <button
                       onClick={handleNextQuestion}
-                      disabled={!enableNext}
+                      disabled={!enableNext || isSubmitting}
                       className={`px-4 py-2 rounded-md text-white transition-colors duration-300 bg-indigo-600 hover:bg-indigo-700 cursor-pointer disabled:bg-gray-400 disabled:text-gray-200 disabled:cursor-not-allowed`}
                     >
                       {currentQuestionIndex < codingTestData.technicalQuestions.length - 1 ? "Next" : "Submit"}

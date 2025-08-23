@@ -1,21 +1,67 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AlertTriangle } from "lucide-react"
+import axios from "axios";
+
+interface ResultItem {
+  id: string
+  userEmail: string
+  userMobile: string
+  userName: string
+  score: number
+  status: "PASSED" | "FAILED"
+  createdAt: string
+  question_ids: string[]
+  test_cases_passed: string[]
+  isCorrect: string[]
+}
 
 export default function TestIntroductionPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const [results, setResults] = useState<ResultItem[]>([])
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     mobile: "",
   })
+
+  const [emailExists, setEmailExists] = useState(false);
+
+
+  useEffect(() => {
+    if (!formData.email) {
+      setEmailExists(false);
+      return;
+    }
+
+    const exists = results.some(
+      (res) => res.userEmail.toLowerCase() === formData.email.toLowerCase()
+    );
+    setEmailExists(exists);
+  }, [formData.email, results]);
+
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const response = await axios.get(`/api/mentor/test/${id}/viewResults`)
+        setResults(response.data.results || [])
+        console.log(response.data.results)
+      } catch (error) {
+        console.error("Failed to fetch results:", error)
+      }
+    }
+
+    fetchResults()
+  }, [id])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -101,6 +147,11 @@ export default function TestIntroductionPage({ params }: { params: { id: string 
                 onChange={handleChange}
               />
             </div>
+            {emailExists && (
+              <p className="text-red-600 text-sm mt-2">
+                Email already exists
+              </p>
+            )}
 
             <div>
               <Label htmlFor="mobile">Mobile Number</Label>
@@ -115,10 +166,11 @@ export default function TestIntroductionPage({ params }: { params: { id: string 
               />
             </div>
 
-            <Button className="w-full mt-4" onClick={handleStartTest}>
+            <Button className="w-full mt-4" onClick={handleStartTest} disabled={emailExists}>
               Start Test
             </Button>
           </CardContent>
+
         </div>
       </Card>
     </div>
