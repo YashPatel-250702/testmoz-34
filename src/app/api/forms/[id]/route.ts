@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveForm, getFormsByMentorService  } from "@/lib/actions/Tests/FormService";
+import { saveForm, getFormByIdService } from "@/lib/actions/Tests/FormService";
 import { CommonErrorHandler, sendCommonError } from "@/lib/shared/Common/CommonError";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -22,16 +22,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
-
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
-    const forms = await getFormsByMentorService(params.id);
-    return NextResponse.json({ forms }, { status: 200 });
+    const form = await getFormByIdService(params.id);
+    return NextResponse.json({ form }, { status: 200 });
   } catch (error: any) {
-    console.error("Error fetching forms:", error);
+    console.error("Error fetching form:", error);
     return sendCommonError(error.message || "Internal Server Error", 500);
   }
 }

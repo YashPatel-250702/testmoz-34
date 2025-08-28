@@ -22,9 +22,32 @@ export async function updateFormRepo(formId: string, formData: { title: string; 
   return result;
 }
 
+export async function getFormByIdRepo(formId: string) {
+  return await prisma.form.findUnique({
+    where: { id: formId },
+  });
+}
+
 export async function getFormsByMentorRepo(mentorId: string) {
   return await prisma.form.findMany({
     where: { mentorId },
     orderBy: { createdAt: "desc" },
   });
 }
+
+export async function saveFormResponseRepo(formId: string, responses: any) {
+  return await prisma.formResponse.create({
+    data: {
+      formId,
+      responses,
+    },
+  });
+}
+
+export async function getFormResponsesByFormIdRepo(formId: string) {
+  return await prisma.formResponse.findMany({
+    where: { formId },
+    orderBy: { createdAt: "desc" },
+  });
+}
+

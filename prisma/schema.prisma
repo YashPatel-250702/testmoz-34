@@ -133,3 +133,9 @@ model Form {
   mentorId  String   
 }
 
+model FormResponse {
+  id        String   @id @default(cuid())
+  formId    String
+  responses Json
+  createdAt DateTime @default(now())
+}
