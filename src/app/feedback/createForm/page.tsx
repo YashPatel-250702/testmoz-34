@@ -204,7 +204,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
               onClick={() => setSelectedId(field.id)}
             >
               <div className="flex justify-between items-center">
-                <label className="font-medium text-gray-800">
+                <label className="font-medium text-gray-800 break-words whitespace-pre-wrap">
                   {field.label}{" "}
                   {field.required && <span className="text-red-500">*</span>}
                 </label>
