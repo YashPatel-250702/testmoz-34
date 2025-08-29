@@ -13,6 +13,7 @@ import {
   BarChart,
   BookOpen,
   ChevronDown,
+  MessageSquare,
 } from "lucide-react"
 
 import {
@@ -112,6 +113,37 @@ export function DashboardSidebar({ ...props }: React.ComponentProps<typeof Sideb
                         <Link href="/placement/technical">
                           <ListChecks />
                           <span>Technical Tests</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </CollapsibleContent>
+              </Collapsible>
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <MessageSquare />
+                      <span>Feedback</span>
+                      <ChevronDown className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                </SidebarMenuItem>
+                <CollapsibleContent>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/feedback/createForm">
+                          <PlusCircle />
+                          <span>Create form</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/feedback/viewForm">
+                          <ListChecks />
+                          <span>View all forms</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

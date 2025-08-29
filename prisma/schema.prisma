@@ -124,3 +124,18 @@ enum TesResultStatus {
   FAILED
   IN_PROGRESS
 }
+
+model Form {
+  id        String   @id @default(cuid()) 
+  title     String
+  fields    Json     
+  createdAt DateTime @default(now())
+  mentorId  String   
+}
+
+model FormResponse {
+  id        String   @id @default(cuid())
+  formId    String
+  responses Json
+  createdAt DateTime @default(now())
+}
