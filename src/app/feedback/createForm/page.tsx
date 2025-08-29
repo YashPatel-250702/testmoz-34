@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlusCircle, Trash2, Save } from "lucide-react";
+import { toast } from "react-toastify";
 
 type FieldType =
   | "text"
@@ -18,12 +19,13 @@ interface FormField {
   label: string;
   type: FieldType;
   options?: string[];
+  required?: boolean;
 }
 
 export default function FormBuilder({ mentorId }: { mentorId: string }) {
   const [title, setTitle] = useState("Untitled Form");
   const [fields, setFields] = useState<FormField[]>([
-    { id: Date.now(), label: "Untitled Question", type: "text" },
+    { id: Date.now(), label: "Untitled Question", type: "text", required: false },
   ]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +34,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
   const addField = () => {
     setFields([
       ...fields,
-      { id: Date.now(), label: "New Question", type: "text" },
+      { id: Date.now(), label: "New Question", type: "text", required: false },
     ]);
   };
 
@@ -51,7 +53,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
     try {
       setLoading(true);
       setMessage(null);
- const mentorId = localStorage.getItem("mentorId");
+      const mentorId = localStorage.getItem("mentorId");
       const response = await fetch(`/api/forms/${mentorId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -67,10 +69,10 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
       }
 
       const data = await response.json();
-      setMessage("✅ Form saved successfully!");
+      toast("Form saved successfully!");
       console.log("Form saved:", data);
     } catch (error: any) {
-      setMessage("❌ " + error.message);
+      toast("❌ " + error.message);
     } finally {
       setLoading(false);
     }
@@ -80,13 +82,11 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar - Field Editor */}
       <aside className="w-80 border-r p-4">
         {selectedField ? (
           <div className="space-y-4">
             <h2 className="font-bold text-lg">Edit Field</h2>
 
-            {/* Label */}
             <div>
               <label className="text-sm font-medium text-gray-700">
                 Label
@@ -100,7 +100,6 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
               />
             </div>
 
-            {/* Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Type
@@ -128,7 +127,19 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
               </select>
             </div>
 
-            {/* Options (if radio/checkbox) */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={selectedField.required || false}
+                onChange={(e) =>
+                  updateField(selectedField.id, { required: e.target.checked })
+                }
+              />
+              <label className="text-sm font-medium text-gray-700">
+                Required
+              </label>
+            </div>
+
             {["radio", "checkbox"].includes(selectedField.type) && (
               <div>
                 <label className="block text-sm font-medium text-gray-700">
@@ -176,16 +187,13 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
         )}
       </aside>
 
-      {/* Main - Form Builder */}
       <main className="flex-1 p-6">
-        {/* Form Title */}
         <input
           className="text-2xl font-bold mb-6 w-full border-b-2 focus:border-orange-500 outline-none"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        {/* Cards */}
         <div className="space-y-4">
           {fields.map((field) => (
             <div
@@ -197,7 +205,8 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
             >
               <div className="flex justify-between items-center">
                 <label className="font-medium text-gray-800">
-                  {field.label}
+                  {field.label}{" "}
+                  {field.required && <span className="text-red-500">*</span>}
                 </label>
                 <button
                   onClick={(e) => {
@@ -278,7 +287,6 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
           ))}
         </div>
 
-        {/* Actions */}
         <div className="flex gap-4 mt-6">
           <button
             className="flex items-center gap-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"

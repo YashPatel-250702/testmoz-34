@@ -10,6 +10,7 @@ interface FormField {
   label: string;
   type: string;
   options?: string[];
+  required?: boolean; 
 }
 
 interface FormData {
@@ -26,35 +27,27 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
   const [message, setMessage] = useState<string | null>(null);
   const [existingEmails, setExistingEmails] = useState<string[]>([]);
   const router = useRouter();
-  const [isexists, setexists] = useState(false)
+  const [isexists, setexists] = useState(false);
 
-  // ✅ Load form & saved responses once
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        console.log("fetching form deatils")
+        console.log("fetching form details");
         const res = await fetch(`/api/forms/${params.id}`);
         const data = await res.json();
         setForm(data.form);
 
-        // 🔍 Fetch existing responses JSON (from DB)
         const resResponses = await fetch(
           `/api/forms/${params.id}/getSavedResponses`
         );
-        console.log(resResponses)
         const dataResponses = await resResponses.json();
-console.log("API raw response:", dataResponses);
+        const responsesArray = dataResponses.responses || [];
 
-// ✅ Extract the array properly
-const responsesArray = dataResponses.responses || [];  
+        const emails = responsesArray.map((r: any) =>
+          r.responses?.Email ? r.responses.Email.toLowerCase().trim() : null
+        );
 
-const emails = responsesArray.map((r: any) =>
-  r.responses?.Email ? r.responses.Email.toLowerCase().trim() : null
-);
-
-console.log("Extracted Emails:", emails);
-setExistingEmails(emails.filter(Boolean)); // filter out nulls
-
+        setExistingEmails(emails.filter(Boolean));
       } catch (err) {
         setMessage("❌ Failed to load form.");
       } finally {
@@ -64,36 +57,50 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
     fetchForm();
   }, [params.id]);
 
-  // ✅ Update response values
   const handleChange = (id: number, value: any, label?: string) => {
     setResponses((prev) => ({ ...prev, [id]: value }));
 
-    // 📨 Only check duplicates when Email field changes
     if (label === "Email" && value) {
-        console.log('checking')
       const normalizedEmail = value.toLowerCase().trim();
-       console.log(existingEmails)
-        console.log(normalizedEmail)
       if (existingEmails.includes(normalizedEmail)) {
-        console.log('checking2')
-        console.log(existingEmails)
-        console.log(normalizedEmail)
-        setexists(true)
+        setexists(true);
         toast("⚠️ This email has already submitted a response.");
       } else {
-         setexists(false)
+        setexists(false);
         setMessage(null);
       }
     }
   };
 
-  // ✅ Submit without checking again
+  const validateRequiredFields = () => {
+    if (!form) return false;
+    for (const field of form.fields) {
+      if (field.required) {
+        const val = responses[field.id];
+        if (
+          val === undefined ||
+          val === "" ||
+          (Array.isArray(val) && val.length === 0)
+        ) {
+          toast(`⚠️ "${field.label}" is required.`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setMessage(null);
 
     try {
+      if (!validateRequiredFields()) {
+        setSubmitting(false);
+        return;
+      }
+
       const formattedResponses: Record<string, any> = {};
       form?.fields.forEach((field) => {
         if (responses[field.id] !== undefined) {
@@ -101,7 +108,6 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
         }
       });
 
-      // 🚫 Block submission if duplicate email warning is already set
       if (formattedResponses.Email) {
         const normalizedEmail = formattedResponses.Email.toLowerCase().trim();
         if (existingEmails.includes(normalizedEmail)) {
@@ -111,7 +117,6 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
         }
       }
 
-      // ✅ Save new response
       const res = await fetch(`/api/forms/${params.id}/saveFormResponse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,7 +155,6 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
         />
       </div>
 
-      {/* Right Form Section */}
       <div className="ml-[25%] w-3/4 flex justify-center items-start overflow-y-auto py-10">
         <div className="w-3/4">
           <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
@@ -164,34 +168,34 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
                 className="bg-white shadow-md rounded-xl p-6 space-y-4"
               >
                 <label className="block font-semibold text-gray-800">
-                  {field.label}
+                  {field.label}{" "}
+                  {field.required && <span className="text-red-500">*</span>}
                 </label>
 
-                {/* Text-like inputs */}
                 {["text", "number", "phone", "email"].includes(field.type) && (
                   <input
                     type={field.type === "phone" ? "tel" : field.type}
                     className="w-full border-b-2 border-gray-300 bg-transparent p-2 focus:border-orange-500 focus:outline-none"
                     value={responses[field.id] || ""}
+                    required={field.required} 
                     onChange={(e) =>
                       handleChange(field.id, e.target.value, field.label)
                     }
                   />
                 )}
 
-                {/* Textarea */}
                 {field.type === "textarea" && (
                   <textarea
                     className="w-full border-b-2 border-gray-300 bg-transparent p-2 focus:border-orange-500 focus:outline-none"
                     rows={4}
                     value={responses[field.id] || ""}
+                    required={field.required}
                     onChange={(e) =>
                       handleChange(field.id, e.target.value, field.label)
                     }
                   />
                 )}
 
-                {/* Radio buttons */}
                 {field.type === "radio" && field.options && (
                   <div className="space-y-2">
                     {field.options.map((option, idx) => (
@@ -204,6 +208,7 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
                           onChange={() =>
                             handleChange(field.id, option, field.label)
                           }
+                          required={field.required}
                         />
                         <span>{option}</span>
                       </label>
@@ -211,7 +216,6 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
                   </div>
                 )}
 
-                {/* Checkboxes */}
                 {field.type === "checkbox" && field.options && (
                   <div className="space-y-2">
                     {field.options.map((option, idx) => {
@@ -242,10 +246,12 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
                         </label>
                       );
                     })}
+                    {field.required && (!responses[field.id] || responses[field.id].length === 0) && (
+                      <p className="text-red-500 text-sm">At least one option is required</p>
+                    )}
                   </div>
                 )}
 
-                {/* Review (1-5 stars) */}
                 {field.type === "review" && (
                   <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -271,7 +277,7 @@ setExistingEmails(emails.filter(Boolean)); // filter out nulls
 
             <button
               type="submit"
-              disabled={submitting || message?.includes("email") || isexists}
+              disabled={submitting || isexists}
               className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold text-lg hover:bg-orange-600 transition disabled:opacity-70"
             >
               {submitting ? "Submitting..." : "Submit"}
