@@ -10,7 +10,7 @@ interface FormField {
   label: string;
   type: string;
   options?: string[];
-  required?: boolean; 
+  required?: boolean;
 }
 
 interface FormData {
@@ -32,7 +32,6 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchForm = async () => {
       try {
-        console.log("fetching form details");
         const res = await fetch(`/api/forms/${params.id}`);
         const data = await res.json();
         setForm(data.form);
@@ -147,7 +146,8 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex min-h-screen w-full">
-      <div className="w-1/4 h-screen fixed top-0 left-0">
+      {/* Left Image Panel */}
+      <div className="hidden md:block w-1/4 h-screen fixed top-0 left-0">
         <img
           src="/image.png"
           alt="Form Illustration"
@@ -155,9 +155,10 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
         />
       </div>
 
-      <div className="ml-[25%] w-3/4 flex justify-center items-start overflow-y-auto py-10">
-        <div className="w-3/4">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+      {/* Form Panel */}
+      <div className="md:ml-[25%] w-full md:w-3/4 flex justify-center items-start overflow-y-auto py-10">
+        <div className="w-11/12 md:w-3/4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center break-words">
             {form.title}
           </h1>
 
@@ -167,7 +168,7 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                 key={field.id}
                 className="bg-white shadow-md rounded-xl p-6 space-y-4"
               >
-                <label className="block font-semibold text-gray-800">
+                <label className="block font-semibold text-gray-800 break-words">
                   {field.label}{" "}
                   {field.required && <span className="text-red-500">*</span>}
                 </label>
@@ -175,18 +176,22 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                 {["text", "number", "phone", "email"].includes(field.type) && (
                   <input
                     type={field.type === "phone" ? "tel" : field.type}
-                    className="w-full border-b-2 border-gray-300 bg-transparent p-2 focus:border-orange-500 focus:outline-none"
+                    className="w-full border-b-2 border-gray-300 bg-transparent p-2 
+             focus:border-orange-500 focus:outline-none 
+             overflow-x-auto whitespace-nowrap"
                     value={responses[field.id] || ""}
-                    required={field.required} 
+                    required={field.required}
                     onChange={(e) =>
                       handleChange(field.id, e.target.value, field.label)
                     }
                   />
+
                 )}
 
                 {field.type === "textarea" && (
                   <textarea
-                    className="w-full border-b-2 border-gray-300 bg-transparent p-2 focus:border-orange-500 focus:outline-none"
+                    className="w-full border-b-2 border-gray-300 bg-transparent p-2 focus:border-orange-500 focus:outline-none 
+             whitespace-pre-wrap break-words break-all resize-y"
                     rows={4}
                     value={responses[field.id] || ""}
                     required={field.required}
@@ -199,7 +204,10 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                 {field.type === "radio" && field.options && (
                   <div className="space-y-2">
                     {field.options.map((option, idx) => (
-                      <label key={idx} className="flex items-center gap-2">
+                      <label
+                        key={idx}
+                        className="flex items-center gap-2 break-words"
+                      >
                         <input
                           type="radio"
                           name={`field-${field.id}`}
@@ -210,7 +218,7 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                           }
                           required={field.required}
                         />
-                        <span>{option}</span>
+                        <span className="break-words">{option}</span>
                       </label>
                     ))}
                   </div>
@@ -221,7 +229,10 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                     {field.options.map((option, idx) => {
                       const selected = responses[field.id] || [];
                       return (
-                        <label key={idx} className="flex items-center gap-2">
+                        <label
+                          key={idx}
+                          className="flex items-center gap-2 break-words"
+                        >
                           <input
                             type="checkbox"
                             value={option}
@@ -242,13 +253,17 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                               }
                             }}
                           />
-                          <span>{option}</span>
+                          <span className="break-words">{option}</span>
                         </label>
                       );
                     })}
-                    {field.required && (!responses[field.id] || responses[field.id].length === 0) && (
-                      <p className="text-red-500 text-sm">At least one option is required</p>
-                    )}
+                    {field.required &&
+                      (!responses[field.id] ||
+                        responses[field.id].length === 0) && (
+                        <p className="text-red-500 text-sm">
+                          At least one option is required
+                        </p>
+                      )}
                   </div>
                 )}
 
@@ -258,14 +273,11 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
                       <button
                         type="button"
                         key={star}
-                        onClick={() =>
-                          handleChange(field.id, star, field.label)
-                        }
-                        className={`text-2xl ${
-                          responses[field.id] >= star
-                            ? "text-yellow-500"
-                            : "text-gray-400"
-                        }`}
+                        onClick={() => handleChange(field.id, star, field.label)}
+                        className={`text-2xl ${responses[field.id] >= star
+                          ? "text-yellow-500"
+                          : "text-gray-400"
+                          }`}
                       >
                         ★
                       </button>
@@ -285,7 +297,7 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
           </form>
 
           {message && (
-            <p className="mt-6 text-center font-medium text-gray-800">
+            <p className="mt-6 text-center font-medium text-gray-800 break-words">
               {message}
             </p>
           )}

@@ -19,6 +19,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {sidebarOpen && <DashboardSidebar collapsible="icon" />}
 
       <SidebarInset>
+        {/* Header */}
         <div
           className="fixed top-0 right-0 z-50 flex items-center justify-between p-4 border-b bg-white shadow-sm transition-all duration-300"
           style={{
@@ -45,8 +46,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </Link>
           </div>
         </div>
-        <main className="flex-1 p-4 bg-muted/20 pt-[72px]">{children}</main>
 
+        {/* Main with horizontal scroll */}
+        <main className="flex-1 p-4 bg-muted/20 pt-[72px] overflow-auto h-[calc(100vh-72px-56px)]">
+  {children}
+</main>
+
+
+        {/* Footer */}
         <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground">
           © {new Date().getFullYear()} Tekworks. All rights reserved.
         </footer>

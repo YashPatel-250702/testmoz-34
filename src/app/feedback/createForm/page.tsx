@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation"; // ✅ import for query params
 import { PlusCircle, Trash2, Save } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -23,6 +24,9 @@ interface FormField {
 }
 
 export default function FormBuilder({ mentorId }: { mentorId: string }) {
+  const searchParams = useSearchParams();
+  const formId = searchParams.get("id") ?? undefined; 
+
   const [title, setTitle] = useState("Untitled Form");
   const [fields, setFields] = useState<FormField[]>([
     { id: Date.now(), label: "Untitled Question", type: "text", required: false },
@@ -30,6 +34,26 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (formId) {
+      const fetchForm = async () => {
+        try {
+          const res = await fetch(`/api/forms/${formId}`);
+          if (!res.ok) throw new Error("Failed to fetch form");
+
+          const data = await res.json();
+    const form = data.form;
+
+    setTitle(form.title);
+    setFields(form.fields || []);
+  } catch (err: any) {
+    toast.error("❌ " + err.message);
+  }
+      };
+      fetchForm();
+    }
+  }, [formId]);
 
   const addField = () => {
     setFields([
@@ -53,26 +77,30 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
     try {
       setLoading(true);
       setMessage(null);
-      const mentorId = localStorage.getItem("mentorId");
-      const response = await fetch(`/api/forms/${mentorId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          fields,
-          mentorId,
-        }),
-      });
+
+      const payload = { title, fields, mentorId };
+
+      const response = await fetch(
+        formId
+          ? `/api/forms/${formId}/updateForm` 
+          : `/api/forms/${mentorId}`,         
+        {
+          method: formId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error("Failed to save form");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to save form");
       }
 
       const data = await response.json();
-      toast("Form saved successfully!");
+      toast.success(formId ? "✅ Form updated successfully!" : "✅ Form created successfully!");
       console.log("Form saved:", data);
     } catch (error: any) {
-      toast("❌ " + error.message);
+      toast.error("❌ " + error.message);
     } finally {
       setLoading(false);
     }
@@ -88,9 +116,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
             <h2 className="font-bold text-lg">Edit Field</h2>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
-                Label
-              </label>
+              <label className="text-sm font-medium text-gray-700">Label</label>
               <input
                 className="w-full border focus:border-orange-500 focus:ring-orange-500 p-2 rounded"
                 value={selectedField.label}
@@ -101,9 +127,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Type
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Type</label>
               <select
                 className="w-full border focus:border-orange-500 focus:ring-orange-500 p-2 rounded"
                 value={selectedField.type}
@@ -135,16 +159,12 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
                   updateField(selectedField.id, { required: e.target.checked })
                 }
               />
-              <label className="text-sm font-medium text-gray-700">
-                Required
-              </label>
+              <label className="text-sm font-medium text-gray-700">Required</label>
             </div>
 
             {["radio", "checkbox"].includes(selectedField.type) && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Options
-                </label>
+                <label className="block text-sm font-medium text-gray-700">Options</label>
                 {selectedField.options?.map((opt, i) => (
                   <div key={i} className="flex gap-2 mb-2">
                     <input
@@ -204,7 +224,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
               onClick={() => setSelectedId(field.id)}
             >
               <div className="flex justify-between items-center">
-                <label className="font-medium text-gray-800">
+                <label className="font-medium text-gray-800 break-words whitespace-pre-wrap">
                   {field.label}{" "}
                   {field.required && <span className="text-red-500">*</span>}
                 </label>
@@ -302,7 +322,7 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
             disabled={loading}
           >
             <Save size={18} />
-            {loading ? "Saving..." : "Save Form"}
+            {loading ? "Saving..." : formId ? "Update Form" : "Save Form"}
           </button>
         </div>
 

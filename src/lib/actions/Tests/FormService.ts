@@ -1,4 +1,4 @@
-import { saveFormRepo, updateFormRepo, getFormsByMentorRepo, getFormByIdRepo, saveFormResponseRepo, getFormResponsesByFormIdRepo } from "@/lib/repository/formRepository/FormRepo";
+import { saveFormRepo, updateFormRepo, getFormsByMentorRepo, getFormByIdRepo, saveFormResponseRepo, getFormResponsesByFormIdRepo, deleteFormRepo } from "@/lib/repository/formRepository/FormRepo";
 import { CommonErrorHandler } from "@/lib/shared/Common/CommonError";
 
 export async function saveForm(mentorId: string, formData: { title: string; fields: any }) {
@@ -45,4 +45,12 @@ export async function getFormsByMentorService(mentorId: string) {
   }
   const forms = await getFormsByMentorRepo(mentorId);
   return forms;
+}
+
+export async function deleteForm(formId: string) {
+  const result = await deleteFormRepo(formId);
+  if (!result) {
+    throw new CommonErrorHandler("Failed to delete the form", 500);
+  }
+  return result;
 }
