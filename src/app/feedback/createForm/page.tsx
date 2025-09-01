@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation"; // ✅ import for query params
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { PlusCircle, Trash2, Save } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -23,9 +23,9 @@ interface FormField {
   required?: boolean;
 }
 
-export default function FormBuilder({ mentorId }: { mentorId: string }) {
+function FormBuilderContent({ mentorId }: { mentorId: string }) {
   const searchParams = useSearchParams();
-  const formId = searchParams.get("id") ?? undefined; 
+  const formId = searchParams.get("id") ?? undefined;
 
   const [title, setTitle] = useState("Untitled Form");
   const [fields, setFields] = useState<FormField[]>([
@@ -43,13 +43,13 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
           if (!res.ok) throw new Error("Failed to fetch form");
 
           const data = await res.json();
-    const form = data.form;
+          const form = data.form;
 
-    setTitle(form.title);
-    setFields(form.fields || []);
-  } catch (err: any) {
-    toast.error("❌ " + err.message);
-  }
+          setTitle(form.title);
+          setFields(form.fields || []);
+        } catch (err: any) {
+          toast.error("❌ " + err.message);
+        }
       };
       fetchForm();
     }
@@ -82,8 +82,8 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
 
       const response = await fetch(
         formId
-          ? `/api/forms/${formId}/updateForm` 
-          : `/api/forms/${mentorId}`,         
+          ? `/api/forms/${formId}/updateForm`
+          : `/api/forms/${mentorId}`,
         {
           method: formId ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -97,7 +97,9 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
       }
 
       const data = await response.json();
-      toast.success(formId ? "✅ Form updated successfully!" : "✅ Form created successfully!");
+      toast.success(
+        formId ? "✅ Form updated successfully!" : "✅ Form created successfully!"
+      );
       console.log("Form saved:", data);
     } catch (error: any) {
       toast.error("❌ " + error.message);
@@ -127,7 +129,9 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Type</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Type
+              </label>
               <select
                 className="w-full border focus:border-orange-500 focus:ring-orange-500 p-2 rounded"
                 value={selectedField.type}
@@ -159,12 +163,16 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
                   updateField(selectedField.id, { required: e.target.checked })
                 }
               />
-              <label className="text-sm font-medium text-gray-700">Required</label>
+              <label className="text-sm font-medium text-gray-700">
+                Required
+              </label>
             </div>
 
             {["radio", "checkbox"].includes(selectedField.type) && (
               <div>
-                <label className="block text-sm font-medium text-gray-700">Options</label>
+                <label className="block text-sm font-medium text-gray-700">
+                  Options
+                </label>
                 {selectedField.options?.map((opt, i) => (
                   <div key={i} className="flex gap-2 mb-2">
                     <input
@@ -219,7 +227,9 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
             <div
               key={field.id}
               className={`bg-white p-4 rounded-lg shadow border-2 cursor-pointer ${
-                selectedId === field.id ? "border-orange-500" : "border-transparent"
+                selectedId === field.id
+                  ? "border-orange-500"
+                  : "border-transparent"
               }`}
               onClick={() => setSelectedId(field.id)}
             >
@@ -331,5 +341,13 @@ export default function FormBuilder({ mentorId }: { mentorId: string }) {
         )}
       </main>
     </div>
+  );
+}
+
+export default function FormBuilder({ mentorId }: { mentorId: string }) {
+  return (
+    <Suspense fallback={<div>Loading form...</div>}>
+      <FormBuilderContent mentorId={mentorId} />
+    </Suspense>
   );
 }
