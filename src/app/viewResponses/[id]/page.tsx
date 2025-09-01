@@ -2,150 +2,114 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DataGrid, Column } from "react-data-grid";
-import { Search, ArrowLeft } from "lucide-react";
+import axios from "axios";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
-import "react-data-grid/lib/styles.css";
+interface ResponseItem {
+  id: string;
+  createdAt: string;
+  responses: Record<string, string>;
+}
 
-export default function FormResponsesPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function FormResponsesPage({ params }: { params: { id: string } }) {
   const { id } = params;
   const router = useRouter();
 
-  const [responses, setResponses] = useState<any[]>([]);
+  const [responses, setResponses] = useState<ResponseItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [showFilter, setShowFilter] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    async function fetchResponses() {
+    const fetchResponses = async () => {
       try {
-        const res = await fetch(`/api/forms/${id}/getSavedResponses`);
-        const data = await res.json();
-        setResponses(data.responses || []);
+        const res = await axios.get(`/api/forms/${id}/getSavedResponses`);
+        setResponses(res.data.responses || []);
       } catch (err) {
         console.error("Error fetching responses:", err);
       } finally {
         setLoading(false);
       }
-    }
+    };
     fetchResponses();
   }, [id]);
 
-  if (loading) return <p className="p-4">Loading responses...</p>;
-  if (!responses.length) return <p className="p-4">No responses submitted yet.</p>;
+  // Get all headers dynamically
+  const headers = responses[0] ? Object.keys(responses[0].responses) : [];
 
-  const headers = Object.keys(responses[0].responses || {});
-  const columns: Column<any>[] = [
-    { key: "#", name: "#", frozen: true },
-    ...headers.map((h) => ({
-      key: h,
-      name: h,
-      resizable: true,
-    })),
-    { key: "submittedAt", name: "Submitted At" },
-  ];
-
-  const allRows = responses.map((r, idx) => {
-    const row: Record<string, any> = {
-      "#": idx + 1,
-      submittedAt: new Date(r.createdAt).toLocaleString(),
-    };
-    headers.forEach((h) => {
-      row[h] = r.responses[h] ?? "";
-    });
-    return row;
-  });
-
-  const filteredRows = allRows.filter((row) =>
-    Object.entries(columnFilters).every(([col, val]) =>
-      String(row[col] ?? "").toLowerCase().includes(val.toLowerCase())
-    )
+  // Filter responses by search (searching in all values)
+  const filteredResponses = responses.filter((r) =>
+    Object.values(r.responses).some((val) => val.toLowerCase().includes(search.toLowerCase()))
   );
 
+  // Truncate helper: first 4 words + full tooltip
+  const truncateWithTooltip = (text: string) => {
+    const words = String(text).split(" ");
+    const truncated = words.slice(0, 4).join(" ");
+    const needsTruncate = words.length > 4;
+    return (
+      <span title={text} className="cursor-help">
+        {needsTruncate ? truncated + "..." : text}
+      </span>
+    );
+  };
+
   return (
-    <div className="flex flex-col h-screen w-screen overflow-auto">
-      <div className="flex items-center justify-between p-4 border-b border-black">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-1 px-3 py-1 border-2 border-black rounded-lg bg-white hover:bg-gray-100"
-          >
-            <ArrowLeft size={18} />
-            <span>Back</span>
-          </button>
-          <h1 className="text-2xl font-bold">Form Responses</h1>
-        </div>
+    <div className="flex-1 overflow-x-auto">
+  <div className="inline-block min-w-full">
 
-        <button
-          onClick={() => setShowFilter((prev) => !prev)}
-          className="flex items-center gap-2 px-3 py-1 border-2 border-black rounded-lg bg-white hover:bg-gray-100"
-        >
-          <Search size={18} />
-          <span>Filter</span>
-        </button>
-      </div>
-
-      {showFilter && (
-        <div className="grid grid-cols-[50px_repeat(auto-fill,minmax(150px,1fr))] border-b border-black bg-gray-50">
-          <div className="p-2 border-r border-black"></div>
-
-          {headers.map((h) => (
-            <input
-              key={h}
-              type="text"
-              placeholder={`Filter ${h}`}
-              value={columnFilters[h] || ""}
-              onChange={(e) =>
-                setColumnFilters((prev) => ({
-                  ...prev,
-                  [h]: e.target.value,
-                }))
-              }
-              className="p-2 border-r border-black text-sm"
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">📄 Form Responses</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm text-gray-500">Total Responses: {responses.length}</p>
+            <Input
+              placeholder="Search responses..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-64"
             />
-          ))}
+          </div>
 
-          <input
-            type="text"
-            placeholder="Filter Submitted At"
-            value={columnFilters["submittedAt"] || ""}
-            onChange={(e) =>
-              setColumnFilters((prev) => ({
-                ...prev,
-                submittedAt: e.target.value,
-              }))
-            }
-            className="p-2 border-r border-black text-sm"
-          />
-        </div>
-      )}
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
+              <span className="ml-2 text-gray-500">Loading responses...</span>
+            </div>
+          ) : filteredResponses.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">No responses found.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-md border">
+              <Table className="min-w-max">
+                <TableHeader>
+                  <TableRow className="bg-gray-100 whitespace-nowrap">
+                    <TableHead>#</TableHead>
+                    {headers.map((h) => (
+                      <TableHead key={h}>{truncateWithTooltip(h)}</TableHead>
+                    ))}
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredResponses.map((r, index) => (
+                    <TableRow key={r.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      {headers.map((h) => (
+                        <TableCell key={h}>{truncateWithTooltip(r.responses[h])}</TableCell>
+                      ))}
+                      <TableCell>{new Date(r.createdAt).toLocaleString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
 
-      <div className="flex-1 w-full h-full overflow-auto">
-        <DataGrid
-          columns={columns}
-          rows={filteredRows}
-          className="rdg-light 
-            [&_.rdg-cell]:border [&_.rdg-cell]:border-black 
-            [&_.rdg-cell]:whitespace-normal [&_.rdg-cell]:break-words 
-            [&_.rdg-cell]:align-top [&_.rdg-cell]:p-2 
-            [&_.rdg-header-row_.rdg-cell]:border [&_.rdg-header-row_.rdg-cell]:border-black 
-            [&_.rdg-header-row_.rdg-cell]:font-bold [&_.rdg-header-row_.rdg-cell]:text-center"
-          defaultColumnOptions={{
-            resizable: true,
-          }}
-          rowHeight={70}
-          style={{
-            border: "2px solid black",
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      </div>
+    </div>
     </div>
   );
 }
