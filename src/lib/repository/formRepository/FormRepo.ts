@@ -51,3 +51,16 @@ export async function getFormResponsesByFormIdRepo(formId: string) {
   });
 }
 
+export async function deleteFormRepo(formId: string) {
+  await prisma.formResponse.deleteMany({
+    where: { formId },
+  });
+
+  const result = await prisma.form.delete({
+    where: { id: formId },
+  });
+
+  return result;
+}
+
+
