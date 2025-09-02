@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +15,7 @@ interface ResponseItem {
 }
 
 export default function FormResponsesPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+ const { id } = use(params);
   const router = useRouter();
 
   const [responses, setResponses] = useState<ResponseItem[]>([]);
@@ -36,41 +36,38 @@ export default function FormResponsesPage({ params }: { params: { id: string } }
     fetchResponses();
   }, [id]);
 
-  // Get all headers dynamically
   const headers = responses[0] ? Object.keys(responses[0].responses) : [];
-
-  // Filter responses by search (searching in all values)
   const filteredResponses = responses.filter((r) =>
-    Object.values(r.responses).some((val) => val.toLowerCase().includes(search.toLowerCase()))
-  );
+  Object.values(r.responses).some((val) =>
+    String(val).toLowerCase().includes(search.toLowerCase())
+  )
+);
 
-  // Truncate helper: first 4 words + full tooltip
   const truncateWithTooltip = (text: string) => {
     const words = String(text).split(" ");
     const truncated = words.slice(0, 4).join(" ");
     const needsTruncate = words.length > 4;
     return (
-      <span title={text} className="cursor-help">
+      <span title={text} className="cursor-default">
         {needsTruncate ? truncated + "..." : text}
       </span>
     );
   };
 
-  return (
-    <div className="flex-1 overflow-x-auto">
-  <div className="inline-block min-w-full">
-
+return (
+  <div className="w-full max-w-7xl mx-auto">
+    <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">📄 Form Responses</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
             <p className="text-sm text-gray-500">Total Responses: {responses.length}</p>
             <Input
               placeholder="Search responses..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-64"
+              className="w-full md:w-64"
             />
           </div>
 
@@ -108,8 +105,8 @@ export default function FormResponsesPage({ params }: { params: { id: string } }
             </div>
           )}
         </CardContent>
+        </Card>
+    </div>
+);
 
-    </div>
-    </div>
-  );
 }

@@ -12,14 +12,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const router = useRouter()
 
-  const sidebarWidth = 260 
+  const sidebarWidth = 260
 
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
       {sidebarOpen && <DashboardSidebar collapsible="icon" />}
 
       <SidebarInset>
-        {/* Header */}
         <div
           className="fixed top-0 right-0 z-50 flex items-center justify-between p-4 border-b bg-white shadow-sm transition-all duration-300 overflow-auto"
           style={{
@@ -47,13 +46,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
 
-        {/* Main with horizontal scroll */}
-        <main className="flex-1 p-4 bg-muted/20 pt-[72px] overflow-x-auto h-[calc(100vh-72px-56px)]">
-  {children}
-</main>
+        <main className="flex-1 bg-muted/20 pt-[72px] pl-1 overflow-x-auto h-[calc(100vh-72px-56px)] w-[calc(100vw-260px)]"
+          style={{
+            width: sidebarOpen ? `calc(100vw - ${sidebarWidth}px)` : "100vw",
+          }} >
+          {children}
+        </main>
 
-
-        {/* Footer */}
         <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground overflow-auto">
           © {new Date().getFullYear()} Tekworks. All rights reserved.
         </footer>
