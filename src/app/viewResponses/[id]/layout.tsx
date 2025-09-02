@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const router = useRouter()
 
-  const sidebarWidth = 260 
+  const sidebarWidth = 260
 
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       <SidebarInset>
         <div
-          className="fixed top-0 right-0 z-50 flex items-center justify-between p-4 border-b bg-white shadow-sm transition-all duration-300"
+          className="fixed top-0 right-0 z-50 flex items-center justify-between p-4 border-b bg-white shadow-sm transition-all duration-300 overflow-auto"
           style={{
             left: sidebarOpen ? `${sidebarWidth}px` : "0px",
           }}
@@ -53,7 +53,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {children}
         </main>
 
-        <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground">
+        <footer className="text-center p-4 border-t bg-white text-sm text-muted-foreground overflow-auto">
           © {new Date().getFullYear()} Tekworks. All rights reserved.
         </footer>
       </SidebarInset>
