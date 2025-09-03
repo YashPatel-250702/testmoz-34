@@ -5,9 +5,9 @@ import { CommonErrorHandler, sendCommonError } from "@/lib/shared/Common/CommonE
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
-    const { responses } = body;
+    const { responses, order } = body;
 
-    const result = await saveFormResponse(params.id, responses);
+    const result = await saveFormResponse(params.id, {responses, order});
 
     return NextResponse.json(
       { message: "Response submitted successfully", result },
