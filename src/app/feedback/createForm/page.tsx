@@ -344,10 +344,14 @@ function FormBuilderContent({ mentorId }: { mentorId: string }) {
   );
 }
 
-export default function FormBuilder({ mentorId }: { mentorId: string }) {
+export default function FormBuilder() {
+  const id = localStorage.getItem("mentorId")
+  if (!id) {
+    return <div>No mentor ID found</div>;
+  }
   return (
     <Suspense fallback={<div>Loading form...</div>}>
-      <FormBuilderContent mentorId={mentorId} />
+      <FormBuilderContent mentorId={id} />
     </Suspense>
   );
 }
