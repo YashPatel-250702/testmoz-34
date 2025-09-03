@@ -9,11 +9,11 @@ export async function saveForm(mentorId: string, formData: { title: string; fiel
   return result;
 }
 
-export async function saveFormResponse(formId: string, responses: any) {
+export async function saveFormResponse(formId: string, data: any) {
   if (!formId) throw new CommonErrorHandler("Form ID is required", 400);
-  if (!responses) throw new CommonErrorHandler("Responses are required", 400);
+  if (!data) throw new CommonErrorHandler("Responses are required", 400);
 
-  const result = await saveFormResponseRepo(formId, responses);
+  const result = await saveFormResponseRepo(formId, data);
   if (!result) throw new CommonErrorHandler("Failed to save form response", 500);
   return result;
 }

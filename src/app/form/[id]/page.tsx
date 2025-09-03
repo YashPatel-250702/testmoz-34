@@ -43,8 +43,10 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
         const responsesArray = dataResponses.responses || [];
 
         const emails = responsesArray.map((r: any) =>
-          r.responses?.Email ? r.responses.Email.toLowerCase().trim() : null
+          r?.responses?.responses?.Email?.toLowerCase().trim() || null
         );
+
+        console.log(emails)
 
         setExistingEmails(emails.filter(Boolean));
       } catch (err) {
@@ -101,9 +103,12 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
       }
 
       const formattedResponses: Record<string, any> = {};
+      const order: string[] = [];
+
       form?.fields.forEach((field) => {
         if (responses[field.id] !== undefined) {
           formattedResponses[field.label] = responses[field.id];
+          order.push(field.label);
         }
       });
 
@@ -119,7 +124,10 @@ export default function PublicFormPage({ params }: { params: { id: string } }) {
       const res = await fetch(`/api/forms/${params.id}/saveFormResponse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ responses: formattedResponses }),
+        body: JSON.stringify({
+          responses: formattedResponses,
+          order,
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to submit form");

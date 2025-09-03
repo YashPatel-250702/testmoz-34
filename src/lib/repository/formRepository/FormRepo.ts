@@ -35,11 +35,11 @@ export async function getFormsByMentorRepo(mentorId: string) {
   });
 }
 
-export async function saveFormResponseRepo(formId: string, responses: any) {
+export async function saveFormResponseRepo(formId: string, data: any) {
   return await prisma.formResponse.create({
     data: {
       formId,
-      responses,
+      responses:data,
     },
   });
 }
